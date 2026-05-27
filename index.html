@@ -925,7 +925,7 @@
         const displayCard = document.getElementById("lyric-display");
         
         // Inject cleanly structured span lines—Flexbox settings enforce perfect dead-centering layout parameters
-        displayCard.innerHTML += `<span class="lyric-line" style="border-top: 1px dashed rgba(201,180,166,0.2); padding-top: 8px; width: 100%;">"${sanitizeLyric(freshLyricLine, currentQuestion.title)}"</span>`;
+        displayCard.innerHTML += `<span class="lyric-line" style="border-top: 1px dashed rgba(201,180,166,0.2); padding-top: 8px; width: 100%; font-size: 1rem; font-family: -apple-system, sans-serif; opacity: 0.7;">"${sanitizeLyric(freshLyricLine, currentQuestion.title)}"</span>`;
         
         // Check click threshold boundary logic limits
         if (hintsUsedThisTurn >= 5) {
