@@ -762,18 +762,6 @@
             document.getElementById("leaderboard-panel").style.display = "none";
         }
 
-        // 4. GENERATE WORDLE-STYLE SHAREABLE SUMMARY BOX
-        // If it doesn't exist yet, we inject a copy button and textarea into the DOM dynamically
-        let shareContainer = document.getElementById("share-container");
-        if (!shareContainer) {
-            shareContainer = document.createElement("div");
-            shareContainer.id = "share-container";
-            shareContainer.style.cssText = "margin-top: 25px; padding: 15px; background: #fdfdfd; border: 1px dashed var(--accent-color); border-radius: 8px;";
-            // Insert it right before the restart button
-            const restartBtn = document.getElementById("restart-btn");
-            restartBtn.parentNode.insertBefore(shareContainer, restartBtn);
-        }
-
         const modeLabel = currentGameMode === 'casual' ? "Casual Mode" : "Competition Mode";
         const shareText = `🔓 The Lyric Vault Unlocked!\n📊 Mode: ${modeLabel}\n🏆 Score: ${score}/${totalQuestions} (${Math.round(accuracy)}%)\n👑 Rank: ${tierEmoji} ${tierTitle}\n Can you beat my score? Play here: ${window.location.href}`;
 
