@@ -705,11 +705,48 @@
         document.getElementById("game-timer").style.display = "none";
         showScreen("results-screen");
 
-        document.getElementById("score-display").innerText = `${score} / ${gameQuestions.length}`;
-        document.getElementById("end-status-heading").innerText = forcedTimeout ? "Time's Up!" : "Quiz Complete";
-
+        const scoreDisplay = document.getElementById("score-display");
+        const heading = document.getElementById("end-status-heading");
         const timeDisplay = document.getElementById("time-spent-display");
 
+        // Calculate accuracy metrics
+        const totalQuestions = gameQuestions.length;
+        const accuracy = totalQuestions > 0 ? (score / totalQuestions) * 100 : 0;
+
+        // 1. DYNAMIC ACHIEVEMENT ENGINE (Determines titles based on score)
+        let tierTitle = "";
+        let tierEmoji = "";
+        let standardMessage = "Thanks for playing! The Vault is open.";
+
+        if (accuracy === 100) {
+            tierTitle = "THE ULTIMATE SWIFTIE (100% PERFECT!)";
+            tierEmoji = "👑✨🏆";
+            heading.innerHTML = `🎉 FLAWLESS VICTORY! 🎉`;
+            standardMessage = "Oh my god, you cleared the entire Vault without breaking a sweat! Absolutely legendary.";
+        } else if (accuracy >= 80) {
+            tierTitle = "Mastermind Status";
+            tierEmoji = "🧠💎";
+            heading.innerText = "Quiz Complete!";
+        } else if (accuracy >= 50) {
+            tierTitle = "Casual Listener";
+            tierEmoji = "🎧🍿";
+            heading.innerText = "Quiz Complete!";
+        } else {
+            tierTitle = "Next Time, Better Luck!";
+            tierEmoji = "💔🎸";
+            heading.innerText = "The Vault Locked Down!";
+            standardMessage = "Shake it off! Give it another try with a different album set.";
+        }
+
+        // 2. CONSTRUCT THE VISUAL RESULTS SCREEN
+        scoreDisplay.innerHTML = `
+            <div style="font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 5px;">Your Final Rank:</div>
+            <div style="font-size: 1.6rem; font-weight: bold; color: var(--primary-color); margin-bottom: 10px;">${tierEmoji} ${tierTitle} ${tierEmoji}</div>
+            <div style="font-size: 3.5rem; font-weight: 800; color: var(--primary-color); line-height: 1;">${score} / ${totalQuestions}</div>
+            <p style="font-family: -apple-system, sans-serif; font-size: 1rem; color: #555; margin-top: 15px; line-height: 1.4; padding: 0 10px;">${standardMessage}</p>
+        `;
+
+        // 3. HANDLING COMPETITION MODE SPECIFICS
         if (currentGameMode === 'comp') {
             const timeSpentSeconds = TOTAL_COMP_TIME - secondsRemaining;
             const displayMin = Math.floor(timeSpentSeconds / 60);
@@ -717,13 +754,34 @@
             timeDisplay.innerText = `Total Completion Time: ${displayMin}m ${displaySec}s`;
             timeDisplay.style.display = "block";
 
-            saveScoreToLeaderboard(currentPlayerName, score, gameQuestions.length, timeSpentSeconds);
+            saveScoreToLeaderboard(currentPlayerName, score, totalQuestions, timeSpentSeconds);
             renderLeaderboardTable();
             document.getElementById("leaderboard-panel").style.display = "block";
         } else {
             timeDisplay.style.display = "none";
             document.getElementById("leaderboard-panel").style.display = "none";
         }
+
+        // 4. GENERATE WORDLE-STYLE SHAREABLE SUMMARY BOX
+        // If it doesn't exist yet, we inject a copy button and textarea into the DOM dynamically
+        let shareContainer = document.getElementById("share-container");
+        if (!shareContainer) {
+            shareContainer = document.createElement("div");
+            shareContainer.id = "share-container";
+            shareContainer.style.cssText = "margin-top: 25px; padding: 15px; background: #fdfdfd; border: 1px dashed var(--accent-color); border-radius: 8px;";
+            // Insert it right before the restart button
+            const restartBtn = document.getElementById("restart-btn");
+            restartBtn.parentNode.insertBefore(shareContainer, restartBtn);
+        }
+
+        const modeLabel = currentGameMode === 'casual' ? "Casual Mode" : "Competition Mode";
+        const shareText = `🔓 The Lyric Vault Unlocked!\n📊 Mode: ${modeLabel}\n🏆 Score: ${score}/${totalQuestions} (${Math.round(accuracy)}%)\n👑 Rank: ${tierEmoji} ${tierTitle}\n Can you beat my score? Play here: ${window.location.href}`;
+
+        shareContainer.innerHTML = `
+            <button id="copy-share-btn" onclick="copyShareText(\`${shareText.replace(/`/g, '\\`').replace(/\n/g, '\\n')}\`)" style="background-color: var(--success-color); max-width: 250px; margin: 0 auto; display: block; font-size: 0.9rem; padding: 10px 15px;">
+                📋 Copy Score Summary
+            </button>
+        `;
 
         document.getElementById("restart-btn").focus();
 
@@ -737,6 +795,20 @@
         } else {
             summaryDiv.style.display = "none";
         }
+    }
+
+    // Helper engine function to copy results to clipboard seamlessly
+    function copyShareText(text) {
+        const processedText = text.replace(/\\n/g, '\n');
+        navigator.clipboard.writeText(processedText).then(() => {
+            const btn = document.getElementById("copy-share-btn");
+            const originalText = btn.innerText;
+            btn.innerText = "✅ Copied to Clipboard!";
+            btn.style.backgroundColor = "#4f7353";
+            setTimeout(() => { btn.innerText = originalText; }, 2000);
+        }).catch(err => {
+            alert("Could not automatically copy score. Feel free to screenshot instead!");
+        });
     }
 
     function saveScoreToLeaderboard(name, score, total, seconds) {
