@@ -656,7 +656,7 @@
         hintBtn.style.opacity = "1";
 
         const rawLyric = currentQuestion.allLyrics[currentQuestion.currentLyricIndex];
-        document.getElementById("lyric-display").innerHTML = `"${sanitizeLyric(rawLyric, currentQuestion.title)}"`;
+        document.getElementById("lyric-display").innerHTML = `<span style="display:block; text-align:center; line-height:1.4;">"${sanitizeLyric(rawLyric, currentQuestion.title)}"</span>`;
         document.getElementById("question-tracker").innerText = `Question ${currentQuestionIndex + 1} of ${gameQuestions.length}`;
 
         const progressPercent = (currentQuestionIndex / gameQuestions.length) * 100;
