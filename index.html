@@ -292,6 +292,11 @@
 
         <div id="casual-fields">
             <div class="form-group">
+                <label style="display: block; margin-bottom: 8px;">Select Albums to Include:</label>
+                <div id="album-checkboxes" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; max-height: 150px; overflow-y: auto; background: #f9f9f9; padding: 10px; border-radius: 6px; border: 1px solid #ddd; font-family: -apple-system, sans-serif; margin-bottom: 20px;">
+                    </div>
+            </div>
+            <div class="form-group">
                 <label id="question-label" for="num-questions">Loading database...</label>
                 <input type="number" id="num-questions" min="1" value="5">
             </div>
@@ -337,7 +342,7 @@
         <p id="time-spent-display" style="font-family:-apple-system, sans-serif; margin-bottom:15px; display:none;"></p>
 
         <div id="leaderboard-panel" style="display: none;">
-            <div class="leaderboard-title">&#x1F3C6; Vault Leaderboard</div>
+            <div class="leaderboard-title">&lt; Vault Leaderboard</div>
             <table class="leaderboard-table">
                 <thead>
                     <tr>
@@ -364,6 +369,7 @@
     let currentQuestionIndex = 0;
     let score = 0;
     let wrongSongs = [];
+    let filteredPool = [];
 
     let currentGameMode = 'casual';
     let currentPlayerName = "Anonymous";
@@ -383,12 +389,43 @@
     document.addEventListener("DOMContentLoaded", () => {
         const numInput = document.getElementById("num-questions");
         const label = document.getElementById("question-label");
+        const checkboxContainer = document.getElementById("album-checkboxes");
 
-        numInput.max = songDatabase.length;
-        numInput.value = Math.min(10, songDatabase.length);
-        label.innerText = `How many questions would you like? (Max available: ${songDatabase.length})`;
+        // Extract unique albums and generate filters dynamically
+        const allAlbums = [...new Set(songDatabase.map(song => song.album || "Unknown Album"))].sort();
+        checkboxContainer.innerHTML = allAlbums.map(album => `
+            <label style="display: flex; align-items: center; cursor: pointer; font-size: 0.9rem; font-family: -apple-system, sans-serif;">
+                <input type="checkbox" class="album-picker" value="${album}" checked style="margin-right: 8px;">
+                ${album}
+            </label>
+        `).join('');
 
-        // Setup your requested, ultra-clean formatting examples
+        function updateAvailablePool() {
+            const activeAlbums = Array.from(document.querySelectorAll('.album-picker:checked')).map(cb => cb.value);
+            filteredPool = songDatabase.filter(song => activeAlbums.includes(song.album || "Unknown Album"));
+
+            if (filteredPool.length === 0) {
+                label.innerText = "Please select at least one album to play!";
+                numInput.max = 0;
+                numInput.value = 0;
+                numInput.disabled = true;
+            } else {
+                numInput.disabled = false;
+                numInput.max = filteredPool.length;
+                if (parseInt(numInput.value) > filteredPool.length || numInput.value == 0) {
+                    numInput.value = Math.min(10, filteredPool.length);
+                }
+                label.innerText = `How many questions would you like? (Max available: ${filteredPool.length})`;
+            }
+        }
+
+        document.querySelectorAll('.album-picker').forEach(checkbox => {
+            checkbox.addEventListener('change', updateAvailablePool);
+        });
+
+        updateAvailablePool();
+
+        // Setup ultra-clean rule formatting dashboard blocks
         document.getElementById("comp-rules-desc").innerHTML = `
             &#x23F0; <strong>Time Limit:</strong> You have 30 minutes.<br><br>
 
@@ -420,10 +457,10 @@
                     &#x2705; <code style="font-family: 'Courier New', Courier, monospace; font-weight: bold; color: #a8456a; background: #fdf2f6; padding: 2px 6px; border-radius: 4px; font-size: 1rem;">weareneverevergettingbacktogether</code> will match "We Are Never Ever Getting Back Together"
                 </li>
                 <li style="margin-bottom: 10px;">
-                    &#x2705; <code style="font-family: 'Courier New', Courier, monospace; font-weight: bold; color: #a8456a; background: #fdf2f6; padding: 2px 6px; border-radius: 4px; font-size: 1rem;">i can fix him no really i can</code> will match "I Can Fix Him (No Really I Can)"
+                    &#x2705; <code style="font-family: 'Courier New', Courier, monospace; font-weight: bold; color: #a8456a; background: #fdf2f6; padding: 2px 6px; border-radius: 4px; font-size: 1rem;">maryssongohmymymy</code> will match "Mary's Song (Oh My My My)"
                 </li>
                 <li style="margin-bottom: 12px;">
-                    &#x2705; <code style="font-family: 'Courier New', Courier, monospace; font-weight: bold; color: #a8456a; background: #fdf2f6; padding: 2px 6px; border-radius: 4px; font-size: 1rem;">i can fix him</code> will also match "I Can Fix Him (No Really I Can)"
+                    &#x2705; <code style="font-family: 'Courier New', Courier, monospace; font-weight: bold; color: #a8456a; background: #fdf2f6; padding: 2px 6px; border-radius: 4px; font-size: 1rem;">maryssong</code> will also match "Mary's Song (Oh My My My)"
                 </li>
             </ul>
 
@@ -471,8 +508,8 @@
 
         if (currentGameMode === 'casual') {
             quizNum = parseInt(document.getElementById("num-questions").value) || 5;
-            if (songDatabase.length < quizNum) {
-                alert("Error: Not enough songs for requested quiz number!");
+            if (filteredPool.length < quizNum || quizNum <= 0) {
+                alert("Please select a valid number of questions within the active album pool constraints!");
                 return;
             }
         } else {
@@ -484,7 +521,6 @@
             }
             currentPlayerName = nameInput;
 
-            // Activate Global Fuse Timer Configuration
             secondsRemaining = TOTAL_COMP_TIME;
             document.getElementById("game-timer").style.display = "block";
             updateTimerDisplay();
@@ -492,16 +528,22 @@
             timerInterval = setInterval(tickTimer, 1000);
         }
 
-        // Randomize list mapping selection pool
-        const chosenSongs = [...songDatabase].sort(() => 0.5 - Math.random()).slice(0, quizNum);
+        // Establish targeted mapping selection tracking criteria pools
+        const selectionSourcePool = (currentGameMode === 'casual') ? filteredPool : songDatabase;
+        const chosenSongs = [...selectionSourcePool].sort(() => 0.5 - Math.random()).slice(0, quizNum);
+        
         gameQuestions = chosenSongs.map(song => {
             const randomSnippet = song.snippets[Math.floor(Math.random() * song.snippets.length)];
-            return { title: song.title, lyric: randomSnippet };
+            return { 
+                title: song.title, 
+                lyric: randomSnippet,
+                aliases: song.aliases || []
+            };
         });
 
         const banner = document.getElementById("last-result");
         banner.className = "last-result-banner";
-        banner.innerText = "";
+        banner.innerHTML = "";
 
         showScreen("game-screen");
         loadQuestion();
@@ -513,7 +555,7 @@
 
         if (secondsRemaining <= 0) {
             clearInterval(timerInterval);
-            alert("ð Time's up! The vault has locked down!");
+            alert("Time's up! The vault has locked down!");
             showResults(true);
         }
     }
@@ -547,35 +589,27 @@
     function submitAnswer() {
         const answerInput = document.getElementById("answer-input");
         const currentQuestion = gameQuestions[currentQuestionIndex];
-        const banner = document.getElementById("last-result");
 
         const answer = pure(answerInput.value);
 
         // --- ADVANCED TARGET MATCHING ENGINE ---
-
-        // 1. Establish the base standard title target
         const standardTarget = pure(currentQuestion.title);
         let isCorrect = (answer === standardTarget);
 
-        // 2. Cross-check explicit aliases from the database if they exist
         if (!isCorrect && currentQuestion.aliases && currentQuestion.aliases.length > 0) {
             isCorrect = currentQuestion.aliases.some(alias => pure(alias) === answer);
         }
 
-        // 3. SPECIAL CASE A: Dynamic "and" / "&" cross-matching
         if (!isCorrect) {
-            // Check if swapping "and" for "&" makes a match
             const explicitAndTarget = pure(currentQuestion.title.toLowerCase().replace(/&/g, 'and'));
-            const explicitAmpTarget = pure(currentQuestion.title.toLowerCase().replace(/\band\b/g, '')); // Strips "and" like raw &
+            const explicitAmpTarget = pure(currentQuestion.title.toLowerCase().replace(/\band\b/g, ''));
 
             if (answer === explicitAndTarget || answer === explicitAmpTarget) {
                 isCorrect = true;
             }
         }
 
-        // 4. SPECIAL CASE B: Parentheses Truncation (e.g. "Mary's Song (Oh My My My)")
         if (!isCorrect && currentQuestion.title.includes('(')) {
-            // Extract just the portion before the open parenthesis "("
             const mainTitlePart = currentQuestion.title.split('(')[0];
             const shortTarget = pure(mainTitlePart);
 
@@ -584,17 +618,15 @@
             }
         }
 
-        // --- EXECUTE SCORE ACTIONS ---
+        // --- EXECUTE SCORE ACTIONS WITH DIRECT ASSIGNMENT BYPASS ---
         if (isCorrect) {
             score++;
-            // FIXED: Using innerHTML forces the browser to turn the hex code into a real emoji!
-            banner.innerHTML = `&#x2705; Correct: "${currentQuestion.title}"`;
-            banner.className = "last-result-banner show correct";
+            document.getElementById("last-result").innerHTML = `&#x2705; Correct: "${currentQuestion.title}"`;
+            document.getElementById("last-result").className = "last-result-banner show correct";
         } else {
             wrongSongs.push({ title: currentQuestion.title, lyric: currentQuestion.lyric });
-            // FIXED: Using innerHTML here handles the incorrect cross code perfectly too!
-            banner.innerHTML = `&#x274C; Last Answer: "${currentQuestion.title}"`;
-            banner.className = "last-result-banner show incorrect";
+            document.getElementById("last-result").innerHTML = `&#x274C; Last Answer: "${currentQuestion.title}"`;
+            document.getElementById("last-result").className = "last-result-banner show incorrect";
         }
 
         currentQuestionIndex++;
@@ -630,7 +662,6 @@
             timeDisplay.innerText = `Total Completion Time: ${displayMin}m ${displaySec}s`;
             timeDisplay.style.display = "block";
 
-            // Store and Sort Local Database Score Metrics
             saveScoreToLeaderboard(currentPlayerName, score, gameQuestions.length, timeSpentSeconds);
             renderLeaderboardTable();
             document.getElementById("leaderboard-panel").style.display = "block";
@@ -664,7 +695,6 @@
             date: new Date().toLocaleDateString()
         });
 
-        // Hierarchy Rank Engine: Accuracy (DESC) -> Finish Speed (ASC)
         currentScores.sort((a, b) => {
             if (b.score !== a.score) {
                 return b.score - a.score;
@@ -709,6 +739,18 @@
     function restartGame() {
         clearInterval(timerInterval);
         showScreen("setup-screen");
+        
+        // Reset the dynamic validation baseline calculations for a fresh loop
+        const numInput = document.getElementById("num-questions");
+        const label = document.getElementById("question-label");
+        const activeAlbums = Array.from(document.querySelectorAll('.album-picker:checked')).map(cb => cb.value);
+        filteredPool = songDatabase.filter(song => activeAlbums.includes(song.album || "Unknown Album"));
+        
+        if (filteredPool.length > 0) {
+            numInput.max = filteredPool.length;
+            label.innerText = `How many questions would you like? (Max available: ${filteredPool.length})`;
+        }
+
         setTimeout(() => {
             if(currentGameMode === 'casual') {
                 document.getElementById("num-questions").focus();
