@@ -280,7 +280,7 @@
         /* --- AUTOMATED ADVANCED MOBILE OPTIMIZATION LAYER --- */
         @media (max-width: 600px) {
             body {
-                align-items: flex-start; /* Push layout container to top so virtual keyboard does not block view */
+                align-items: flex-start;
                 padding: 10px;
                 min-height: auto;
             }
@@ -306,16 +306,15 @@
                 margin-bottom: 20px;
             }
 
-            /* Responsive layout configurations for the album grid rules */
             #album-checkboxes {
-                grid-template-columns: 1fr !important; /* Force checkboxes to single file list on tiny viewports */
+                grid-template-columns: 1fr !important;
                 max-height: 120px !important;
                 gap: 8px !important;
             }
 
             input[type="number"], input[type="text"] {
                 padding: 12px 14px;
-                font-size: 0.95rem; /* Prevents iOS Safari from forcefully auto-zooming onto input fields */
+                font-size: 0.95rem;
             }
 
             button {
@@ -329,7 +328,7 @@
             }
             
             .hint-text {
-                display: none; /* Hide desktop-only "Press Enter" hint lines on mobile viewports */
+                display: none;
             }
         }
     </style>
@@ -385,14 +384,8 @@
 
         <div id="lyric-display" class="lyric-card"></div>
 
-        <!-- STATEFUL HINT CALL PANEL -->
-        <button id="hint-btn" onclick="getMoreLyric()" style="background-color: var(--accent-color); color: var(--text-color); max-width: 200px; margin: -15px auto 25px auto; display: block; font-size: 0.85rem; padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; font-family:-apple-system, sans-serif; font-weight:600;">
-            🔍 More Lyric
-        </button>
-
         <div class="form-group">
             <input type="text" id="answer-input" placeholder="What song is this?" autocomplete="off">
-            <span class="hint-text">Press Enter to submit and load the next question instantly</span>
         </div>
         <button id="action-btn" onclick="submitAnswer()">Submit Guess</button>
     </div>
@@ -452,11 +445,9 @@
         const label = document.getElementById("question-label");
         const checkboxContainer = document.getElementById("album-checkboxes");
 
-        // Dynamic extraction extraction array setup with an automated protection fallback map
         let extractedAlbums = [...new Set(songDatabase.map(song => song.album).filter(Boolean))];
         
         if (extractedAlbums.length === 0) {
-            // Fallback default list if database structure does not possess specific "album" parameters yet
             extractedAlbums = ["Taylor Swift", "Fearless", "Speak Now", "Red", "1989", "Reputation", "Lover", "Folklore", "Evermore", "Midnights", "The Tortured Poets Department"];
         } else {
             extractedAlbums.sort();
@@ -472,13 +463,11 @@
         function updateAvailablePool() {
             const activeAlbums = Array.from(document.querySelectorAll('.album-picker:checked')).map(cb => cb.value.toLowerCase().trim());
             
-            // Filter checking for matching values under absolute structural parameters
             filteredPool = songDatabase.filter(song => {
                 const songAlbum = (song.album || "Unknown Album").toLowerCase().trim();
                 return activeAlbums.includes(songAlbum) || activeAlbums.length === 0;
             });
 
-            // If flat matching database maps fail, treat entire configuration source pool as valid fallback
             if (filteredPool.length === 0) {
                 filteredPool = [...songDatabase];
             }
@@ -497,7 +486,6 @@
 
         updateAvailablePool();
 
-        // Setup clean instructions block rules rendering mapping properties
         document.getElementById("comp-rules-desc").innerHTML = `
             &#x23F0; <strong>Time Limit:</strong> You have 30 minutes.<br><br>
 
@@ -604,12 +592,10 @@
         const chosenSongs = [...selectionSourcePool].sort(() => 0.5 - Math.random()).slice(0, quizNum);
         
         gameQuestions = chosenSongs.map(song => {
-            const startingIndex = Math.floor(Math.random() * song.snippets.length);
+            const randomSnippet = song.snippets[Math.floor(Math.random() * song.snippets.length)];
             return { 
                 title: song.title, 
-                allLyrics: song.snippets, 
-                currentLyricIndex: startingIndex,
-                viewedIndices: [startingIndex],
+                lyric: randomSnippet,
                 aliases: song.aliases || []
             };
         });
@@ -649,14 +635,7 @@
         setTimeout(() => { answerInput.focus(); }, 5);
 
         const currentQuestion = gameQuestions[currentQuestionIndex];
-        
-        const hintBtn = document.getElementById("hint-btn");
-        hintBtn.disabled = false;
-        hintBtn.innerText = "🔍 More Lyric";
-        hintBtn.style.opacity = "1";
-
-        const rawLyric = currentQuestion.allLyrics[currentQuestion.currentLyricIndex];
-        document.getElementById("lyric-display").innerHTML = `<span style="display:block; text-align:center; line-height:1.4;">"${sanitizeLyric(rawLyric, currentQuestion.title)}"</span>`;
+        document.getElementById("lyric-display").innerText = `"${currentQuestion.lyric}"`;
         document.getElementById("question-tracker").innerText = `Question ${currentQuestionIndex + 1} of ${gameQuestions.length}`;
 
         const progressPercent = (currentQuestionIndex / gameQuestions.length) * 100;
@@ -698,14 +677,12 @@
             }
         }
 
-        const primaryDisplayedLyric = currentQuestion.allLyrics[currentQuestion.viewedIndices[0]];
-
         if (isCorrect) {
             score++;
             document.getElementById("last-result").innerHTML = `&#x2705; Correct: "${currentQuestion.title}"`;
             document.getElementById("last-result").className = "last-result-banner show correct";
         } else {
-            wrongSongs.push({ title: currentQuestion.title, lyric: primaryDisplayedLyric });
+            wrongSongs.push({ title: currentQuestion.title, lyric: currentQuestion.lyric });
             document.getElementById("last-result").innerHTML = `&#x274C; Last Answer: "${currentQuestion.title}"`;
             document.getElementById("last-result").className = "last-result-banner show incorrect";
         }
@@ -881,50 +858,6 @@
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-    }
-
-    // --- HINT CONTROL SEQUENCE ENGINES ---
-    function getMoreLyric() {
-        const currentQuestion = gameQuestions[currentQuestionIndex];
-        const totalLines = currentQuestion.allLyrics.length;
-        
-        if (totalLines <= 1) {
-            const hintBtn = document.getElementById("hint-btn");
-            hintBtn.innerText = "🚫 No more lines available";
-            hintBtn.disabled = true;
-            hintBtn.style.opacity = "0.5";
-            return;
-        }
-
-        let nextTargetIndex = currentQuestion.currentLyricIndex + 1;
-
-        if (nextTargetIndex >= totalLines) {
-            nextTargetIndex = Math.min(...currentQuestion.viewedIndices) - 1;
-        }
-
-        if (nextTargetIndex < 0 || nextTargetIndex >= totalLines) {
-            const hintBtn = document.getElementById("hint-btn");
-            hintBtn.innerText = "🚫 Out of lyrics!";
-            hintBtn.disabled = true;
-            hintBtn.style.opacity = "0.5";
-            return;
-        }
-
-        currentQuestion.currentLyricIndex = nextTargetIndex;
-        currentQuestion.viewedIndices.push(nextTargetIndex);
-
-        const freshLyricLine = currentQuestion.allLyrics[nextTargetIndex];
-        const displayCard = document.getElementById("lyric-display");
-
-        displayCard.innerHTML += `<span style="display:block; margin-top:12px; font-size:1.2rem; border-top:1px dashed #eee; padding-top:12px; font-style: italic; text-align: center; line-height: 1.4;">"${sanitizeLyric(freshLyricLine, currentQuestion.title)}"</span>`;
-        
-        document.getElementById("answer-input").focus();
-    }
-
-    function sanitizeLyric(lyricText, songTitle) {
-        const escapedTitle = songTitle.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-        const searchRegex = new RegExp(escapedTitle, 'gi');
-        return lyricText.replace(searchRegex, "[???]");
     }
 </script>
 </body>
