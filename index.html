@@ -276,6 +276,62 @@
             padding-bottom: 8px;
         }
         .incorrect-item:last-child { border: none; }
+
+        /* --- AUTOMATED ADVANCED MOBILE OPTIMIZATION LAYER --- */
+        @media (max-width: 600px) {
+            body {
+                align-items: flex-start; /* Push layout container to top so virtual keyboard does not block view */
+                padding: 10px;
+                min-height: auto;
+            }
+
+            .container {
+                padding: 20px 15px;
+                border-radius: 12px;
+                box-shadow: 0 4px 20px rgba(109, 95, 124, 0.04);
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+
+            .subtitle {
+                margin-bottom: 15px;
+                font-size: 0.75rem;
+            }
+
+            .lyric-card {
+                padding: 25px 10px;
+                font-size: 1.2rem;
+                margin-bottom: 20px;
+            }
+
+            /* Responsive layout configurations for the album grid rules */
+            #album-checkboxes {
+                grid-template-columns: 1fr !important; /* Force checkboxes to single file list on tiny viewports */
+                max-height: 120px !important;
+                gap: 8px !important;
+            }
+
+            input[type="number"], input[type="text"] {
+                padding: 12px 14px;
+                font-size: 0.95rem; /* Prevents iOS Safari from forcefully auto-zooming onto input fields */
+            }
+
+            button {
+                padding: 12px 20px;
+                font-size: 0.95rem;
+            }
+
+            .leaderboard-table th, .leaderboard-table td {
+                padding: 8px 10px;
+                font-size: 0.8rem;
+            }
+            
+            .hint-text {
+                display: none; /* Hide desktop-only "Press Enter" hint lines on mobile viewports */
+            }
+        }
     </style>
 </head>
 <body>
@@ -528,7 +584,6 @@
             timerInterval = setInterval(tickTimer, 1000);
         }
 
-        // Establish targeted mapping selection tracking criteria pools
         const selectionSourcePool = (currentGameMode === 'casual') ? filteredPool : songDatabase;
         const chosenSongs = [...selectionSourcePool].sort(() => 0.5 - Math.random()).slice(0, quizNum);
         
@@ -740,7 +795,6 @@
         clearInterval(timerInterval);
         showScreen("setup-screen");
         
-        // Reset the dynamic validation baseline calculations for a fresh loop
         const numInput = document.getElementById("num-questions");
         const label = document.getElementById("question-label");
         const activeAlbums = Array.from(document.querySelectorAll('.album-picker:checked')).map(cb => cb.value);
