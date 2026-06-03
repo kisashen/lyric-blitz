@@ -1,0 +1,531 @@
+:root {
+    --bg-color: #fbf9f4;
+    --card-bg: #ffffff;
+    --primary-color: #6d5f7c;
+    --text-color: #2c2530;
+    --accent-color: #c9b4a6;
+    --success-color: #4f7353;
+    --error-color: #944545;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Playfair Display', Georgia, serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    width: 100%;
+    max-width: 600px;
+    background: var(--card-bg);
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 12px 40px rgba(109, 95, 124, 0.06);
+    border: 1px solid rgba(201, 180, 166, 0.2);
+    text-align: center;
+}
+
+h1 {
+    font-size: 2.4rem;
+    margin-bottom: 8px;
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+.subtitle {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 0.85rem;
+    color: #888;
+    margin-bottom: 25px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.screen { display: none; }
+.screen.active { display: block; }
+.hidden { display: none !important; }
+
+/* Setup State Navigation Tabs */
+.mode-toggle {
+    display: flex;
+    margin-bottom: 25px;
+    border-bottom: 2px solid #eee;
+}
+
+.mode-tab {
+    flex: 1;
+    padding: 12px;
+    cursor: pointer;
+    font-family: -apple-system, sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #aaa;
+    transition: all 0.2s;
+}
+
+.mode-tab.active {
+    color: var(--primary-color);
+    border-bottom: 3px solid var(--primary-color);
+    margin-bottom: -2px;
+}
+
+.form-group {
+    margin-bottom: 25px;
+    text-align: left;
+}
+
+label {
+    display: block;
+    font-family: -apple-system, sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+    color: var(--primary-color);
+}
+
+/* Hardcoded Chronological Checkbox Layout */
+.album-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+    max-height: 160px;
+    overflow-y: auto;
+    background: #f9f9f9;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-family: -apple-system, sans-serif;
+    margin-bottom: 20px;
+}
+
+.album-grid label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--text-color);
+    font-weight: normal;
+    margin-bottom: 0;
+}
+
+.album-grid input {
+    margin-right: 8px;
+    cursor: pointer;
+}
+
+.comp-warning-box {
+    background-color: rgba(148, 69, 69, 0.05);
+    border: 1px solid rgba(148, 69, 69, 0.15);
+    padding: 15px;
+    border-radius: 8px;
+    font-family: -apple-system, sans-serif;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    text-align: left;
+    margin-bottom: 25px;
+    color: var(--error-color);
+}
+
+.comp-info-box {
+  /* Font Theme Architecture matching your premium buttons */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 0.95rem;         /* Slightly adjusted to match clean button scale */
+    font-weight: 600;           /* Gives it that solid, clean weight your buttons have */
+    color: var(--primary-color);
+    text-align: center;
+    line-height: 1.6;
+
+    /* Box Presentation Framework */
+    background-color: rgba(201, 180, 166, 0.1);
+    border: 1px dashed var(--accent-color);
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+}
+
+input[type="number"], input[type="text"] {
+    width: 100%;
+    padding: 14px 18px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    font-family: -apple-system, sans-serif;
+    transition: border-color 0.2s;
+}
+
+input:focus { border-color: var(--primary-color); }
+
+button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    font-size: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    font-family: -apple-system, sans-serif;
+    font-weight: 600;
+    transition: background-color 0.2s;
+}
+
+button:hover { background-color: #554961; }
+
+/* Rules Display Layout Cards */
+.rules-card {
+    margin-top: 35px;
+    padding: 20px;
+    background: #fafaf8;
+    border-radius: 10px;
+    border: 1px solid #eae7e1;
+    text-align: left;
+    font-family: -apple-system, sans-serif;
+}
+
+.rules-card h3 {
+    font-size: 0.95rem;
+    color: var(--primary-color);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.rules-card ul {
+    list-style: none;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    margin-bottom: 15px;
+    color: #555;
+}
+
+.examples-header {
+    font-size: 0.85rem;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: var(--text-color);
+}
+
+.example {
+    font-size: 0.8rem;
+    margin-bottom: 6px;
+    line-height: 1.4;
+    color: #444;
+}
+
+.example code {
+    font-family: monospace;
+    background: #eee;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 0.85rem;
+}
+
+.error-note { color: var(--error-color); font-weight: 600; }
+
+#hint-btn {
+    margin-bottom: 25px;
+
+    /* NEW LOOK: Secondary Outlined Style */
+    background-color: transparent;       /* Removes the solid purple fill */
+    color: var(--primary-color);         /* Makes the text purple instead of white */
+    border: 2px solid var(--primary-color); /* Adds a crisp purple border */
+    font-weight: 500;                    /* Makes the text slightly less bold */
+}
+
+/* This rule controls what happens when the cursor hovers over the hint button */
+#hint-btn:hover {
+    background-color: rgba(109, 95, 124, 0.05); /* Adds a subtle purple tint on hover */
+    color: #554961;                             /* Darkens the text color slightly */
+    border-color: #554961;                       /* Darkens the border color slightly */
+}
+
+/* Gameplay Runtime Screen Elements */
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.metadata-tag {
+    font-family: -apple-system, sans-serif;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #888;
+    font-weight: 600;
+}
+
+.timer-tag {
+    font-family: monospace, sans-serif;
+    font-size: 1.1rem;
+    color: var(--error-color);
+    font-weight: bold;
+    background: rgba(148, 69, 69, 0.08);
+    padding: 4px 10px;
+    border-radius: 4px;
+}
+
+.last-result-banner {
+    font-family: -apple-system, sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 10px 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    opacity: 0;
+    transform: translateY(-5px);
+    transition: all 0.2s ease-in-out;
+}
+
+.last-result-banner.show { opacity: 1; transform: translateY(0); }
+.last-result-banner.correct { background-color: rgba(79, 115, 83, 0.08); color: var(--success-color); }
+.last-result-banner.incorrect { background-color: rgba(148, 69, 69, 0.08); color: var(--error-color); }
+
+.progress-bar {
+    width: 100%;
+    height: 4px;
+    background-color: #eee;
+    border-radius: 2px;
+    margin-bottom: 35px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background-color: var(--accent-color);
+    width: 0%;
+    transition: width 0.2s ease;
+}
+
+/* Centering Vertical Flexbox Stack Area for multi-line hint appendings */
+.lyric-card {
+    background-color: #fefdfb;
+    border-top: 1px solid rgba(201, 180, 166, 0.3);
+    border-bottom: 1px solid rgba(201, 180, 166, 0.3);
+    padding: 35px 20px;
+    margin-bottom: 25px;
+    font-style: italic;
+    font-size: 1.45rem;
+    line-height: 1.6;
+    color: #3b3240;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    min-height: 130px;
+}
+
+.lyric-line {
+    display: block;
+    text-align: center;
+    width: 100%;
+}
+
+.input-hint {
+    font-family: -apple-system, sans-serif;
+    font-size: 0.8rem;
+    color: #999;
+    margin-top: 10px;
+    display: block;
+}
+
+/* Scoring, Feedback, and Leaderboard Layout Elements */
+.score-display {
+    font-size: 3.8rem;
+    font-weight: 800;
+    color: var(--primary-color);
+    margin: 10px 0;
+}
+
+.time-meta-text {
+    font-family: -apple-system, sans-serif;
+    font-size: 0.95rem;
+    color: #666;
+    margin-bottom: 20px;
+}
+
+.tier-card {
+    font-family: -apple-system, sans-serif;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    line-height: 1.5;
+}
+.tier-card.flawless { background: rgba(109, 95, 124, 0.08); color: var(--primary-color); }
+.tier-card.congrats { background: rgba(79, 115, 83, 0.08); color: var(--success-color); }
+.tier-card.oops { background: rgba(148, 69, 69, 0.08); color: var(--error-color); }
+
+.leaderboard-title {
+    font-family: -apple-system, sans-serif;
+    font-size: 1.1rem;
+    color: var(--primary-color);
+    margin-top: 30px;
+    margin-bottom: 12px;
+    font-weight: bold;
+    text-align: left;
+}
+
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: -apple-system, sans-serif;
+    font-size: 0.9rem;
+    margin-bottom: 30px;
+    background: #fafaf8;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.leaderboard-table th, .leaderboard-table td {
+    padding: 12px 15px;
+    text-align: left;
+}
+
+.leaderboard-table th {
+    background-color: #eae7e1;
+    color: #555;
+    font-weight: 600;
+}
+
+.leaderboard-table tr { border-bottom: 1px solid #eee; }
+.leaderboard-table tr:last-child { border: none; }
+
+.incorrect-list {
+    text-align: left;
+    margin: 25px 0;
+    max-height: 220px;
+    overflow-y: auto;
+    background: #fdfdfd;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+    display: none;
+}
+
+.incorrect-item {
+    font-family: -apple-system, sans-serif;
+    font-size: 0.9rem;
+    margin-bottom: 12px;
+    border-bottom: 1px solid #f5f5f5;
+    padding-bottom: 8px;
+}
+.incorrect-item:last-child { border: none; }
+
+/* Smartphone View Layer Adjustments */
+@media (max-width: 600px) {
+    body {
+        align-items: flex-start;
+        padding: 10px;
+    }
+
+    .container {
+        padding: 25px 15px;
+    }
+
+    h1 { font-size: 1.8rem; }
+
+    .album-grid {
+        grid-template-columns: 1fr !important;
+        max-height: 130px !important;
+    }
+
+    .lyric-card {
+        font-size: 1.15rem;
+        padding: 25px 10px;
+    }
+
+    input[type="number"], input[type="text"] {
+        padding: 12px 14px;
+        font-size: 0.95rem;
+    }
+
+    .leaderboard-table th, .leaderboard-table td {
+        padding: 8px 10px;
+        font-size: 0.78rem;
+    }
+
+    .input-hint { display: none; }
+}
+
+/* =========================================================
+   OPTION A: PRE-GAME LEADERBOARD & SUB-LINK STYLES
+   ========================================================= */
+
+/* Centers the wrapper link container cleanly beneath the main button */
+.view-rankings-wrapper {
+    margin-top: 20px;
+    margin-bottom: 5px;
+    text-align: center;
+}
+
+/* Styles the interactive link to look like an elegant, subtle sub-option */
+#view-board-link {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 0.9rem;
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    transition: all 0.2s ease-in-out;
+}
+
+/* Adds a beautiful underline accent tracking state on hover actions */
+#view-board-link:hover {
+    background-color: rgba(109, 95, 124, 0.05);
+    text-decoration: underline;
+}
+
+/* Ensures the pre-game leaderboard block flows perfectly on Screen 1 */
+#setup-leaderboard-view {
+    margin-top: 15px;
+    margin-bottom: 25px;
+    text-align: left;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Smooth fade animation wrapper when toggling views */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+/* =========================================================
+   ENGINEER SIGNATURE FOOTER STYLES
+   ========================================================= */
+  .vault-footer {
+    margin-top: 40px;
+    padding-top: 15px;
+    border-top: 1px dashed rgba(201, 180, 166, 0.2);
+    text-align: center;
+
+    /* Forces the entire footer line to use your crisp button font stack */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size: 0.8rem;
+    color: #999;
+    letter-spacing: 0.5px;
+}
+
+.vault-footer a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+
+    /* Ensures the links also strictly inherit the clean button font stack */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    transition: color 0.2s ease;
+}
