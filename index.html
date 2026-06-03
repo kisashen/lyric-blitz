@@ -1,346 +1,19 @@
+<!--
+=========================================================
+                     THE LYRIC VAULT
+  Designed & Engineered by: Kisa
+  Built Using: Vanilla HTML5, Responsive CSS3, JavaScript
+  Current Build Version: 1.2.0 (June 2026)
+=========================================================
+-->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Lyric Vault: A Taylor Swift Guessing Game</title>
-    <style>
-        :root {
-            --bg-color: #fbf9f4;
-            --card-bg: #ffffff;
-            --primary-color: #6d5f7c;
-            --text-color: #2c2530;
-            --accent-color: #c9b4a6;
-            --success-color: #4f7353;
-            --error-color: #944545;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Playfair Display', Georgia, serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 600px;
-            background: var(--card-bg);
-            padding: 40px;
-            border-radius: 16px;
-            box-shadow: 0 12px 40px rgba(109, 95, 124, 0.06);
-            border: 1px solid rgba(201, 180, 166, 0.2);
-            text-align: center;
-            position: relative;
-        }
-
-        h1 {
-            font-size: 2.4rem;
-            margin-bottom: 8px;
-            color: var(--primary-color);
-            font-weight: 700;
-        }
-
-        .subtitle {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            font-size: 0.85rem;
-            color: #888;
-            margin-bottom: 25px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .screen { display: none; }
-        .screen.active { display: block; }
-
-        /* Mode Toggle Tabs */
-        .mode-toggle {
-            display: flex;
-            margin-bottom: 25px;
-            border-bottom: 2px solid #eee;
-        }
-
-        .mode-tab {
-            flex: 1;
-            padding: 12px;
-            cursor: pointer;
-            font-family: -apple-system, sans-serif;
-            font-weight: 600;
-            font-size: 0.95rem;
-            color: #aaa;
-            text-align: center;
-            transition: all 0.2s;
-        }
-
-        .mode-tab.active {
-            color: var(--primary-color);
-            border-bottom: 3px solid var(--primary-color);
-            margin-bottom: -2px;
-        }
-
-        .form-group {
-            margin-bottom: 25px;
-            text-align: left;
-        }
-
-        label {
-            display: block;
-            font-family: -apple-system, sans-serif;
-            font-weight: 600;
-            font-size: 0.9rem;
-            margin-bottom: 10px;
-            color: var(--primary-color);
-        }
-
-        input[type="number"], input[type="text"] {
-            width: 100%;
-            padding: 14px 18px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-            outline: none;
-            font-family: -apple-system, sans-serif;
-            transition: border-color 0.2s;
-        }
-
-        input:focus { border-color: var(--primary-color); }
-
-        button {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 14px 28px;
-            font-size: 1rem;
-            border-radius: 8px;
-            cursor: pointer;
-            width: 100%;
-            font-family: -apple-system, sans-serif;
-            font-weight: 600;
-            transition: background-color 0.2s;
-        }
-
-        button:hover { background-color: #554961; }
-
-        /* Game Screen Layout Elements */
-        .game-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .metadata-tag {
-            font-family: -apple-system, sans-serif;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: #888;
-            font-weight: 600;
-        }
-
-        .timer-tag {
-            font-family: monospace, sans-serif;
-            font-size: 1.1rem;
-            color: var(--error-color);
-            font-weight: bold;
-            background: rgba(148, 69, 69, 0.08);
-            padding: 4px 10px;
-            border-radius: 4px;
-            display: none;
-        }
-
-        .last-result-banner {
-            font-family: -apple-system, sans-serif;
-            font-size: 0.9rem;
-            font-weight: 600;
-            padding: 10px 15px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            opacity: 0;
-            transform: translateY(-5px);
-            transition: all 0.2s ease-in-out;
-            display: inline-block;
-            width: 100%;
-        }
-
-        .last-result-banner.show { opacity: 1; transform: translateY(0); }
-        .last-result-banner.correct { background-color: rgba(79, 115, 83, 0.08); color: var(--success-color); }
-        .last-result-banner.incorrect { background-color: rgba(148, 69, 69, 0.08); color: var(--error-color); }
-
-        .progress-bar {
-            width: 100%;
-            height: 4px;
-            background-color: #eee;
-            border-radius: 2px;
-            margin-bottom: 30px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background-color: var(--accent-color);
-            width: 0%;
-            transition: width 0.15s ease;
-        }
-
-        .lyric-card {
-            background-color: #fefdfb;
-            border-top: 1px solid rgba(201, 180, 166, 0.3);
-            border-bottom: 1px solid rgba(201, 180, 166, 0.3);
-            padding: 30px 20px;
-            margin-bottom: 20px;
-            font-style: italic;
-            font-size: 1.4rem;
-            line-height: 1.5;
-            color: #3b3240;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-            min-height: 120px;
-            text-align: center;
-        }
-
-        .lyric-line {
-            display: block;
-            text-align: center;
-            width: 100%;
-        }
-
-        .score-display {
-            font-size: 3.2rem;
-            font-weight: bold;
-            color: var(--primary-color);
-            margin: 15px 0;
-        }
-
-        /* Leaderboard and Summaries Table Styles */
-        .leaderboard-title {
-            font-family: -apple-system, sans-serif;
-            font-size: 1rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--primary-color);
-            margin-top: 30px;
-            margin-bottom: 10px;
-            font-weight: bold;
-            text-align: left;
-        }
-
-        .leaderboard-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-family: -apple-system, sans-serif;
-            font-size: 0.9rem;
-            margin-bottom: 30px;
-            background: #fafaf8;
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        .leaderboard-table th, .leaderboard-table td {
-            padding: 12px 15px;
-            text-align: left;
-        }
-
-        .leaderboard-table th {
-            background-color: #eae7e1;
-            color: #555;
-            font-weight: 600;
-        }
-
-        .leaderboard-table tr { border-bottom: 1px solid #eee; }
-        .leaderboard-table tr:last-child { border: none; }
-
-        .incorrect-list {
-            text-align: left;
-            margin: 25px 0;
-            max-height: 200px;
-            overflow-y: auto;
-            background: #fdfdfd;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #eee;
-        }
-
-        .incorrect-item {
-            font-size: 0.9rem;
-            margin-bottom: 12px;
-            border-bottom: 1px solid #f5f5f5;
-            padding-bottom: 8px;
-        }
-        .incorrect-item:last-child { border: none; }
-
-        /* Rules display panel box */
-        .global-rules-container {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-            text-align: left;
-        }
-
-        /* --- AUTOMATED ADVANCED MOBILE OPTIMIZATION LAYER --- */
-        @media (max-width: 600px) {
-            body {
-                align-items: flex-start;
-                padding: 10px;
-                min-height: auto;
-            }
-
-            .container {
-                padding: 20px 15px;
-                border-radius: 12px;
-                box-shadow: 0 4px 20px rgba(109, 95, 124, 0.04);
-            }
-
-            h1 {
-                font-size: 1.8rem;
-            }
-
-            .subtitle {
-                margin-bottom: 15px;
-                font-size: 0.75rem;
-            }
-
-            .lyric-card {
-                padding: 20px 10px;
-                font-size: 1.15rem;
-                margin-bottom: 15px;
-            }
-
-            #album-checkboxes {
-                grid-template-columns: 1fr !important;
-                max-height: 120px !important;
-                gap: 8px !important;
-            }
-
-            input[type="number"], input[type="text"] {
-                padding: 12px 14px;
-                font-size: 0.95rem;
-            }
-
-            button {
-                padding: 12px 20px;
-                font-size: 0.95rem;
-            }
-
-            .leaderboard-table th, .leaderboard-table td {
-                padding: 8px 10px;
-                font-size: 0.8rem;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -348,42 +21,75 @@
     <h1>The Lyric Vault</h1>
     <div class="subtitle">A Taylor Swift Guessing Game</div>
 
+    <!-- SCREEN 1: CONFIGURATION & RULES DASHBOARD -->
     <div id="setup-screen" class="screen active">
-        <div class="mode-toggle">
-            <div id="tab-casual" class="mode-tab active" onclick="setMode('casual')">Casual Mode</div>
-            <div id="tab-comp" class="mode-tab" onclick="setMode('comp')">Competition Mode</div>
+        <div id="setup-fields-container">
+            <div class="mode-toggle">
+                <div id="tab-casual" class="mode-tab active" onclick="setMode('casual')">Casual Mode</div>
+                <div id="tab-comp" class="mode-tab" onclick="setMode('comp')">Competition Mode</div>
+            </div>
+
+            <div id="casual-fields">
+                <div class="form-group">
+                    <label>Select Albums to Include:</label>
+                    <div id="album-checkboxes" class="album-grid"></div>
+                </div>
+                <div class="form-group">
+                    <label id="question-label" for="num-questions">How many questions would you like?</label>
+                    <input type="number" id="num-questions" min="1" value="5">
+                </div>
+            </div>
+
+            <div id="comp-fields" class="hidden">
+                <div class="form-group">
+                    <label for="player-name">Enter Player Name / Initials:</label>
+                    <input type="text" id="player-name" placeholder="e.g. T.S." maxlength="15" autocomplete="off">
+                </div>
+                <div class="comp-info-box">
+                    &#128368; You have 30 minutes. All songs will be tested.
+                </div>
+            </div>
+
+            <button onclick="startGame()">Enter the Vault</button>
         </div>
 
-        <div id="casual-fields">
-            <div class="form-group">
-                <label style="display: block; margin-bottom: 8px;">Select Albums to Include:</label>
-                <div id="album-checkboxes" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; max-height: 150px; overflow-y: auto; background: #f9f9f9; padding: 10px; border-radius: 6px; border: 1px solid #ddd; font-family: -apple-system, sans-serif; margin-bottom: 20px;">
-                    </div>
-            </div>
-            <div class="form-group">
-                <label id="question-label" for="num-questions">Loading database...</label>
-                <input type="number" id="num-questions" min="1" value="5">
-            </div>
+        <div id="setup-leaderboard-view" class="hidden">
+            <div class="leaderboard-title">&#127942; Global Ranking</div>
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Name</th>
+                        <th>Score</th>
+                        <th>Time</th>
+                        <th>Hints</th>
+                    </tr>
+                </thead>
+                <tbody id="setup-leaderboard-rows"></tbody>
+            </table>
         </div>
 
-        <div id="comp-fields" style="display: none;">
-            <div class="form-group">
-                <label for="player-name">Enter Player Name / Initials:</label>
-                <input type="text" id="player-name" placeholder="e.g. T.S." maxlength="15" autocomplete="off">
-            </div>
-            <div class="form-group" style="opacity: 0.85;">
-                &#x23F0; <strong>Time Limit:</strong> You have 30 minutes.<br><br>
-                
-            </div>
+        <div class="view-rankings-wrapper">
+            <a href="#" id="view-board-link" onclick="toggleSetupLeaderboard(event)">View Global Rankings</a>
         </div>
 
-        <button onclick="startGame()" style="margin-bottom: 10px;">Enter the Vault</button>
-
-        <div class="global-rules-container">
-            <div id="comp-rules-desc"></div>
+        <div class="rules-card">
+            <h3>Game Rules</h3>
+            <ul>
+                <li>&#8226; Not case sensitive</li>
+                <li>&#8226; Spaces and symbols are ignored</li>
+                <li>&#8226; "and" and "&" are interchangeable</li>
+                <li>&#8226; Parentheses ( ) and brackets [ ] are ignored</li>
+            </ul>
+            <div class="examples-header">Examples:</div>
+            <div class="example correct">&#9989;<code>me</code> will match "ME!"</div>
+            <div class="example correct">&#9989;<code>I can see you</code> will match "I Can See You (Taylor's Version)"</div>
+            <div class="example correct">&#9989;<code>I can fix him</code> will match "I Can Fix Him (No Really I Can)"</div>
+            <div class="example incorrect">&#10060;<code>missamericanatheheartbreakprince</code> will NOT match "Miss Americana and The Heartbreak Prince" <span class="error-note">(Don't skip "and"!)</span></div>
         </div>
     </div>
 
+    <!-- SCREEN 2: ACTIVE GAMEPLAY ENGINE CORE -->
     <div id="game-screen" class="screen">
         <div id="last-result" class="last-result-banner"></div>
 
@@ -396,9 +102,7 @@
 
         <div id="lyric-display" class="lyric-card"></div>
 
-        <button id="hint-btn" onclick="getMoreLyric()" style="background-color: var(--accent-color); color: var(--text-color); max-width: 220px; margin: -5px auto 20px auto; display: block; font-size: 0.85rem; padding: 8px 16px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-family: -apple-system, sans-serif;">
-            🔍 More Lyrics (5 Left)
-        </button>
+        <button id="hint-btn" onclick="getMoreLyric()">More Lyrics</button>
 
         <div class="form-group">
             <input type="text" id="answer-input" placeholder="What song is this?" autocomplete="off">
@@ -406,13 +110,16 @@
         <button id="action-btn" onclick="submitAnswer()">Submit Guess</button>
     </div>
 
+    <!-- SCREEN 3: END SCORING ARCHIVE -->
     <div id="results-screen" class="screen">
         <h2 id="end-status-heading">Quiz Complete</h2>
         <div id="score-display" class="score-display">0/0</div>
-        <p id="time-spent-display" style="font-family:-apple-system, sans-serif; margin-bottom:15px; display:none;"></p>
+        <p id="time-spent-display" class="time-meta-text"></p>
 
-        <div id="leaderboard-panel" style="display: none;">
-            <div class="leaderboard-title">&lt; Vault Leaderboard</div>
+        <div id="tier-feedback-card" class="tier-card"></div>
+
+        <div id="leaderboard-panel" class="hidden">
+            <div class="leaderboard-title">&#127942; Global Leaderboard</div>
             <table class="leaderboard-table">
                 <thead>
                     <tr>
@@ -420,509 +127,29 @@
                         <th>Name</th>
                         <th>Score</th>
                         <th>Time Taken</th>
+                        <th>Hints</th>
                     </tr>
                 </thead>
-                <tbody id="leaderboard-rows">
-                    </tbody>
+                <tbody id="leaderboard-rows"></tbody>
             </table>
         </div>
 
-        <div id="incorrect-summary" class="incorrect-list" style="display:none;"></div>
+        <div id="incorrect-summary" class="incorrect-list"></div>
         <button id="restart-btn" onclick="restartGame()">Play Again</button>
     </div>
-</div>
 
+    <!-- FIXED PLACEMENT: The Signature lives cleanly inside the container root base -->
+    <div class="vault-footer">
+        Crafted with &#129782; by <a href="https://github.com/kisashen" target="_blank">Kisa</a>
+    </div>
+</div> <!-- END OF CONTAINER ROOT -->
+
+<!-- Dependency Mounting Chain -->
 <script src="song_database.js"></script>
-
+<script src="game.js"></script>
 <script>
-    let gameQuestions = [];
-    let currentQuestionIndex = 0;
-    let score = 0;
-    let wrongSongs = [];
-    let filteredPool = [];
-
-    let currentGameMode = 'casual';
-    let currentPlayerName = "Anonymous";
-
-    let timerInterval = null;
-    const TOTAL_COMP_TIME = 30 * 60; // 30 minutes in seconds
-    let secondsRemaining = TOTAL_COMP_TIME;
-    
-    let hintsUsedThisTurn = 0;
-
-    if (typeof songDatabase === 'undefined') {
-        alert("Error: song_database.js file not found! Please run your Python data engine first.");
-    }
-
-    function pure(text) {
-        return text.toLowerCase().replace(/[^a-z0-9]/g, '');
-    }
-
-    document.addEventListener("DOMContentLoaded", () => {
-        const numInput = document.getElementById("num-questions");
-        const label = document.getElementById("question-label");
-        const checkboxContainer = document.getElementById("album-checkboxes");
-
-        let extractedAlbums = [...new Set(songDatabase.map(song => song.album).filter(Boolean))];
-        
-        if (extractedAlbums.length === 0) {
-            extractedAlbums = ["Taylor Swift", "Fearless", "Speak Now", "Red", "1989", "Reputation", "Lover", "Folklore", "Evermore", "Midnights", "The Tortured Poets Department"];
-        } else {
-            extractedAlbums.sort();
-        }
-
-        checkboxContainer.innerHTML = extractedAlbums.map(album => `
-            <label style="display: flex; align-items: center; cursor: pointer; font-size: 0.9rem; font-family: -apple-system, sans-serif;">
-                <input type="checkbox" class="album-picker" value="${album}" checked style="margin-right: 8px;">
-                ${album}
-            </label>
-        `).join('');
-
-        function updateAvailablePool() {
-            const activeAlbums = Array.from(document.querySelectorAll('.album-picker:checked')).map(cb => cb.value.toLowerCase().trim());
-            
-            filteredPool = songDatabase.filter(song => {
-                const songAlbum = (song.album || "Unknown Album").toLowerCase().trim();
-                return activeAlbums.includes(songAlbum) || activeAlbums.length === 0;
-            });
-
-            if (filteredPool.length === 0) {
-                filteredPool = [...songDatabase];
-            }
-
-            numInput.disabled = false;
-            numInput.max = filteredPool.length;
-            if (parseInt(numInput.value) > filteredPool.length || numInput.value == 0) {
-                numInput.value = Math.min(10, filteredPool.length);
-            }
-            label.innerText = `How many questions would you like? (Max available: ${filteredPool.length})`;
-        }
-
-        document.querySelectorAll('.album-picker').forEach(checkbox => {
-            checkbox.addEventListener('change', updateAvailablePool);
-        });
-
-        updateAvailablePool();
-
-        // Injected into the newly decoupled global rules node layout card box
-        document.getElementById("comp-rules-desc").innerHTML = `
-            <strong style="font-family: -apple-system, sans-serif; font-size: 0.95rem; display: block; margin-bottom: 8px; color: var(--primary-color);">Vault Validation Rules:</strong>
-            <ul style="list-style-type: none; margin-left: 5px; padding-left: 0; font-family: -apple-system, sans-serif; font-size: 0.9rem; color:#444;">
-                <li style="margin-bottom: 6px;">🟢 Not case sensitive</li>
-                <li style="margin-bottom: 6px;">🟢 Spaces and keyboard punctuation are completely ignored</li>
-                <li style="margin-bottom: 6px;">🟢 The word "and" and "&" symbols are interchangeable</li>
-                <li style="margin-bottom: 12px;">🟢 Parentheses ( ) and brackets [ ] are ignored</li>
-            </ul>
-
-            <strong style="font-family: -apple-system, sans-serif; font-size: 0.95rem; display: block; margin-bottom: 8px; margin-top: 15px; color: var(--primary-color);">Correct Input Equivalents:</strong>
-            <ul style="list-style-type: none; margin-left: 5px; padding-left: 0; font-family: -apple-system, sans-serif; font-size: 0.85rem; color:#555;">
-                <li style="margin-bottom: 8px;">
-                    ✅ <code style="font-family: monospace; font-weight: bold; color: #6d5f7c; background: #f5f2f7; padding: 2px 5px; border-radius: 4px;">me</code> matches "ME!"
-                </li>
-                <li style="margin-bottom: 8px;">
-                    ✅ <code style="font-family: monospace; font-weight: bold; color: #6d5f7c; background: #f5f2f7; padding: 2px 5px; border-radius: 4px;">I can see you</code> matches "I Can See You (Taylor's Version)"
-                </li>
-                <li style="margin-bottom: 8px;">
-                    ✅ <code style="font-family: monospace; font-weight: bold; color: #6d5f7c; background: #f5f2f7; padding: 2px 5px; border-radius: 4px;">maryssong</code> matches "Mary's Song (Oh My My My)"
-                </li>
-            </ul>
-
-            <strong style="font-family: -apple-system, sans-serif; font-size: 0.95rem; display: block; margin-bottom: 8px; margin-top: 15px; color: var(--error-color);">Incorrect Input Example:</strong>
-            <p style="font-family: -apple-system, sans-serif; font-size: 0.85rem; color:#555; line-height:1.4;">
-                ❌ <code style="font-family: monospace; font-weight: bold; color: #b05858; background: #fbebeb; padding: 2px 5px; border-radius: 4px;">missamericanatheheartbreakprince</code> will <strong>NOT</strong> match "Miss Americana and The Heartbreak Prince" (Don't skip spelling out connective words like "and"!).
-            </p>
-        `;
-
-        numInput.focus();
-    });
-
-    function setMode(mode) {
-        currentGameMode = mode;
-        document.getElementById('tab-casual').classList.toggle('active', mode === 'casual');
-        document.getElementById('tab-comp').classList.toggle('active', mode === 'comp');
-        document.getElementById('casual-fields').style.display = (mode === 'casual') ? 'block' : 'none';
-        document.getElementById('comp-fields').style.display = (mode === 'comp') ? 'block' : 'none';
-
-        if (mode === 'casual') {
-            document.getElementById("num-questions").focus();
-        } else {
-            document.getElementById("player-name").focus();
-        }
-    }
-
-    document.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") {
-            if (document.getElementById("setup-screen").classList.contains("active")) {
-                startGame();
-            } else if (document.getElementById("results-screen").classList.contains("active")) {
-                restartGame();
-            }
-        }
-    });
-
-    function startGame() {
-        wrongSongs = [];
-        score = 0;
-        currentQuestionIndex = 0;
-
-        let quizNum = 5;
-
-        if (currentGameMode === 'casual') {
-            quizNum = parseInt(document.getElementById("num-questions").value) || 5;
-            if (filteredPool.length < quizNum || quizNum <= 0) {
-                alert("Please select a valid number of questions within the active album pool constraints!");
-                return;
-            }
-        } else {
-            quizNum = songDatabase.length;
-            const nameInput = document.getElementById("player-name").value.trim();
-            if (!nameInput) {
-                alert("Please enter your name/initials to register for the leaderboard!");
-                return;
-            }
-            currentPlayerName = nameInput;
-
-            secondsRemaining = TOTAL_COMP_TIME;
-            document.getElementById("game-timer").style.display = "block";
-            updateTimerDisplay();
-            clearInterval(timerInterval);
-            timerInterval = setInterval(tickTimer, 1000);
-        }
-
-        const selectionSourcePool = (currentGameMode === 'casual') ? filteredPool : songDatabase;
-        const chosenSongs = [...selectionSourcePool].sort(() => 0.5 - Math.random()).slice(0, quizNum);
-        
-        gameQuestions = chosenSongs.map(song => {
-            const startingIndex = Math.floor(Math.random() * song.snippets.length);
-            return { 
-                title: song.title, 
-                allLyrics: song.snippets, 
-                currentLyricIndex: startingIndex,
-                viewedIndices: [startingIndex],
-                aliases: song.aliases || []
-            };
-        });
-
-        const banner = document.getElementById("last-result");
-        banner.className = "last-result-banner";
-        banner.innerHTML = "";
-
-        showScreen("game-screen");
-        loadQuestion();
-    }
-
-    function tickTimer() {
-        secondsRemaining--;
-        updateTimerDisplay();
-
-        if (secondsRemaining <= 0) {
-            clearInterval(timerInterval);
-            alert("Time's up! The vault has locked down!");
-            showResults(true);
-        }
-    }
-
-    function updateTimerDisplay() {
-        const minutes = Math.floor(secondsRemaining / 60);
-        const seconds = secondsRemaining % 60;
-        document.getElementById("game-timer").innerText =
-            `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    }
-
-    function loadQuestion() {
-        const answerInput = document.getElementById("answer-input");
-        answerInput.value = "";
-        answerInput.readOnly = false;
-        answerInput.disabled = false;
-
-        setTimeout(() => { answerInput.focus(); }, 5);
-
-        const currentQuestion = gameQuestions[currentQuestionIndex];
-        
-        hintsUsedThisTurn = 0;
-        const hintBtn = document.getElementById("hint-btn");
-        hintBtn.style.display = "block";
-        hintBtn.disabled = false;
-        hintBtn.innerText = "🔍 More Lyrics (5 Left)";
-        hintBtn.style.opacity = "1";
-
-        const rawLyric = currentQuestion.allLyrics[currentQuestion.currentLyricIndex];
-        
-        document.getElementById("lyric-display").innerHTML = `<span class="lyric-line">"${sanitizeLyric(rawLyric, currentQuestion.title)}"</span>`;
-        document.getElementById("question-tracker").innerText = `Question ${currentQuestionIndex + 1} of ${gameQuestions.length}`;
-
-        const progressPercent = (currentQuestionIndex / gameQuestions.length) * 100;
-        document.getElementById("progress-fill").style.width = `${progressPercent}%`;
-
-        const actionBtn = document.getElementById("action-btn");
-        actionBtn.innerText = (currentQuestionIndex + 1 < gameQuestions.length) ? "Submit Guess" : "Finish Quiz";
-    }
-
-    function submitAnswer() {
-        const answerInput = document.getElementById("answer-input");
-        const currentQuestion = gameQuestions[currentQuestionIndex];
-
-        const answer = pure(answerInput.value);
-
-        // --- ADVANCED TARGET MATCHING ENGINE ---
-        const standardTarget = pure(currentQuestion.title);
-        let isCorrect = (answer === standardTarget);
-
-        if (!isCorrect && currentQuestion.aliases && currentQuestion.aliases.length > 0) {
-            isCorrect = currentQuestion.aliases.some(alias => pure(alias) === answer);
-        }
-
-        if (!isCorrect) {
-            const explicitAndTarget = pure(currentQuestion.title.toLowerCase().replace(/&/g, 'and'));
-            const explicitAmpTarget = pure(currentQuestion.title.toLowerCase().replace(/\band\b/g, ''));
-
-            if (answer === explicitAndTarget || answer === explicitAmpTarget) {
-                isCorrect = true;
-            }
-        }
-
-        if (!isCorrect && currentQuestion.title.includes('(')) {
-            const mainTitlePart = currentQuestion.title.split('(')[0];
-            const shortTarget = pure(mainTitlePart);
-
-            if (answer === shortTarget) {
-                isCorrect = true;
-            }
-        }
-
-        const primaryDisplayedLyric = currentQuestion.allLyrics[currentQuestion.viewedIndices[0]];
-
-        if (isCorrect) {
-            score++;
-            document.getElementById("last-result").innerHTML = `&#x2705; Correct: "${currentQuestion.title}"`;
-            document.getElementById("last-result").className = "last-result-banner show correct";
-        } else {
-            wrongSongs.push({ title: currentQuestion.title, lyric: primaryDisplayedLyric });
-            document.getElementById("last-result").innerHTML = `&#x274C; Last Answer: "${currentQuestion.title}"`;
-            document.getElementById("last-result").className = "last-result-banner show incorrect";
-        }
-
-        currentQuestionIndex++;
-        if (currentQuestionIndex < gameQuestions.length) {
-            loadQuestion();
-        } else {
-            clearInterval(timerInterval);
-            showResults(false);
-        }
-    }
-
-    document.getElementById("answer-input").addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            submitAnswer();
-        }
-    });
-
-    function showResults(forcedTimeout = false) {
-        document.getElementById("progress-fill").style.width = "100%";
-        document.getElementById("game-timer").style.display = "none";
-        showScreen("results-screen");
-
-        const scoreDisplay = document.getElementById("score-display");
-        const heading = document.getElementById("end-status-heading");
-        const timeDisplay = document.getElementById("time-spent-display");
-
-        const totalQuestions = gameQuestions.length;
-        const accuracy = totalQuestions > 0 ? (score / totalQuestions) * 100 : 0;
-
-        let tierTitle = "";
-        let tierEmoji = "";
-        let standardMessage = "Thanks for playing!";
-
-        if (accuracy === 100) {
-            tierTitle = "THE ULTIMATE SWIFTIE";
-            tierEmoji = "👑✨🏆";
-            heading.innerHTML = `🎉 FLAWLESS VICTORY! 🎉`;
-            standardMessage = "Oh my god, you cleared the entire Vault! Absolutely legendary.";
-        } else if (accuracy >= 80) {
-            tierTitle = "Mastermind";
-            tierEmoji = "🧠💎";
-            heading.innerText = "Quiz Complete!";
-        } else if (accuracy >= 50) {
-            tierTitle = "Casual Listener";
-            tierEmoji = "🎧🍿";
-            heading.innerText = "Quiz Complete!";
-        } else {
-            tierTitle = "Next Time, Better Luck!";
-            tierEmoji = "💔🎸";
-            heading.innerText = "The Vault Locked Down!";
-            standardMessage = "Shake it off! Give it another try with a different album set.";
-        }
-
-        scoreDisplay.innerHTML = `
-            <div style="font-size: 1.6rem; font-weight: bold; color: var(--primary-color); margin-bottom: 10px;">${tierEmoji} ${tierTitle} ${tierEmoji}</div>
-            <div style="font-size: 3.5rem; font-weight: 800; color: var(--primary-color); line-height: 1;">${score} / ${totalQuestions}</div>
-            <p style="font-family: -apple-system, sans-serif; font-size: 1rem; color: #555; margin-top: 15px; line-height: 1.4; padding: 0 10px;">${standardMessage}</p>
-        `;
-
-        if (currentGameMode === 'comp') {
-            const timeSpentSeconds = TOTAL_COMP_TIME - secondsRemaining;
-            const displayMin = Math.floor(timeSpentSeconds / 60);
-            const displaySec = timeSpentSeconds % 60;
-            timeDisplay.innerText = `Total Completion Time: ${displayMin}m ${displaySec}s`;
-            timeDisplay.style.display = "block";
-
-            saveScoreToLeaderboard(currentPlayerName, score, totalQuestions, timeSpentSeconds);
-            renderLeaderboardTable();
-            document.getElementById("leaderboard-panel").style.display = "block";
-        } else {
-            timeDisplay.style.display = "none";
-            document.getElementById("leaderboard-panel").style.display = "none";
-        }
-
-        document.getElementById("restart-btn").focus();
-
-        const summaryDiv = document.getElementById("incorrect-summary");
-        if (wrongSongs.length > 0) {
-            summaryDiv.style.display = "block";
-            summaryDiv.innerHTML = "<strong>Review What You Missed:</strong><br><br>";
-            wrongSongs.forEach(item => {
-                summaryDiv.innerHTML += `<div class="incorrect-item">Correct Answer: <strong>${item.title}</strong><br><small style="color:#777;">"${item.lyric}"</small></div>`;
-            });
-        } else {
-            summaryDiv.style.display = "none";
-        }
-    }
-
-    function saveScoreToLeaderboard(name, score, total, seconds) {
-        let currentScores = JSON.parse(localStorage.getItem('ts_vault_leaderboard')) || [];
-
-        currentScores.push({
-            name: name,
-            score: score,
-            total: total,
-            timeSpent: seconds,
-            date: new Date().toLocaleDateString()
-        });
-
-        currentScores.sort((a, b) => {
-            if (b.score !== a.score) {
-                return b.score - a.score;
-            }
-            return a.timeSpent - b.timeSpent;
-        });
-
-        currentScores = currentScores.slice(0, 10);
-        localStorage.setItem('ts_vault_leaderboard', JSON.stringify(currentScores));
-    }
-
-    function renderLeaderboardTable() {
-        const scores = JSON.parse(localStorage.getItem('ts_vault_leaderboard')) || [];
-        const tbody = document.getElementById("leaderboard-rows");
-        tbody.innerHTML = "";
-
-        if (scores.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#999;">The vault leaderboard is currently empty.</td></tr>`;
-            return;
-        }
-
-        scores.forEach((entry, idx) => {
-            const min = Math.floor(entry.timeSpent / 60);
-            const sec = entry.timeSpent % 60;
-            const timeStr = `${min}m ${sec}s`;
-
-            tbody.innerHTML += `
-                <tr>
-                    <td><strong>#${idx + 1}</strong></td>
-                    <td>${escapeHtml(entry.name)}</td>
-                    <td>${entry.score}/${entry.total}</td>
-                    <td>${timeStr}</td>
-                </tr>
-            `;
-        });
-    }
-
-    function escapeHtml(str) {
-        return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-    }
-
-    function restartGame() {
-        clearInterval(timerInterval);
-        showScreen("setup-screen");
-        
-        const numInput = document.getElementById("num-questions");
-        const label = document.getElementById("question-label");
-        const activeAlbums = Array.from(document.querySelectorAll('.album-picker:checked')).map(cb => cb.value.toLowerCase().trim());
-        
-        filteredPool = songDatabase.filter(song => {
-            const songAlbum = (song.album || "Unknown Album").toLowerCase().trim();
-            return activeAlbums.includes(songAlbum) || activeAlbums.length === 0;
-        });
-        
-        if (filteredPool.length === 0) {
-            filteredPool = [...songDatabase];
-        }
-
-        numInput.max = filteredPool.length;
-        label.innerText = `How many questions would you like? (Max available: ${filteredPool.length})`;
-
-        setTimeout(() => {
-            if(currentGameMode === 'casual') {
-                document.getElementById("num-questions").focus();
-            } else {
-                document.getElementById("player-name").focus();
-            }
-        }, 10);
-    }
-
-    function showScreen(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-    }
-
-    function getMoreLyric() {
-        const currentQuestion = gameQuestions[currentQuestionIndex];
-        const totalLines = currentQuestion.allLyrics.length;
-        const hintBtn = document.getElementById("hint-btn");
-        
-        if (totalLines <= 1) {
-            hintBtn.innerText = "🚫 No more lines available";
-            hintBtn.disabled = true;
-            hintBtn.style.opacity = "0.5";
-            return;
-        }
-
-        let nextTargetIndex = currentQuestion.currentLyricIndex + 1;
-
-        if (nextTargetIndex >= totalLines) {
-            nextTargetIndex = Math.min(...currentQuestion.viewedIndices) - 1;
-        }
-
-        if (nextTargetIndex < 0 || nextTargetIndex >= totalLines) {
-            hintBtn.innerText = "🚫 Out of lyrics!";
-            hintBtn.disabled = true;
-            hintBtn.style.opacity = "0.5";
-            return;
-        }
-
-        currentQuestion.currentLyricIndex = nextTargetIndex;
-        currentQuestion.viewedIndices.push(nextTargetIndex);
-        
-        hintsUsedThisTurn++;
-
-        const freshLyricLine = currentQuestion.allLyrics[nextTargetIndex];
-        const displayCard = document.getElementById("lyric-display");
-        
-        displayCard.innerHTML += `<span class="lyric-line" style="border-top: 1px dashed rgba(201,180,166,0.2); padding-top: 8px; width: 100%; font-size: 1rem; font-family: -apple-system, sans-serif; opacity: 0.7;">"${sanitizeLyric(freshLyricLine, currentQuestion.title)}"</span>`;
-        
-        if (hintsUsedThisTurn >= 5) {
-            hintBtn.style.display = "none";
-        } else {
-            hintBtn.innerText = `🔍 More Lyrics (${5 - hintsUsedThisTurn} Left)`;
-        }
-        
-        document.getElementById("answer-input").focus();
-    }
-
-    function sanitizeLyric(lyricText, songTitle) {
-        const escapedTitle = songTitle.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-        const searchRegex = new RegExp(escapedTitle, 'gi');
-        return lyricText.replace(searchRegex, "[???]");
+    if (typeof initGameSetup === 'function') {
+        initGameSetup();
     }
 </script>
 </body>
