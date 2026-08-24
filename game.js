@@ -1,5 +1,5 @@
-console.log("%c Welcome to the Lyric Vault Dev Console! Crafted by Kisa (2026). Found a bug? Send feedback via GitHub!", "color: #6d5f7c; font-family: sans-serif; font-size: 14px; font-weight: bold;");
-// Hardcoded ordered array ensures clean, consistent timeline setups
+console.log("%c Welcome to the Taylor Swift Lyrics Test Console! Crafted by Kisa (2026).", "color: #6d5f7c; font-family: sans-serif; font-size: 14px; font-weight: bold;");
+
 const CHRONOLOGICAL_ALBUMS = [
     "Taylor Swift",
     "Fearless",
@@ -11,8 +11,24 @@ const CHRONOLOGICAL_ALBUMS = [
     "folklore",
     "evermore",
     "Midnights",
-    "The tortured Poets department"
+    "The tortured Poets department",
+    "The Life of a Showgirl"
 ];
+
+const ALBUM_EMOJIS = {
+    "Taylor Swift": "&#x1F49A;",
+    "Fearless": "&#x1F49B;",
+    "Speak Now": "&#x1F49C;",
+    "Red": "&#x2764;&#xFE0F;",
+    "1989": "&#x1F48E;",
+    "Reputation": "&#x1F5A4;",
+    "Lover": "&#x1F496;",
+    "folklore": "&#x1faa9;",
+    "evermore": "&#x1F90E;",
+    "Midnights": "&#x1F499;",
+    "The tortured Poets department": "&#x1F90D;",
+    "The Life of a Showgirl": "&#x1F9E1;"
+};
 
 let gameQuestions = [];
 let currentQuestionIndex = 0;
@@ -21,39 +37,85 @@ let wrongSongs = [];
 let filteredPool = [];
 let totalHintsUsedInGame = 0;
 
-let currentGameMode = 'casual';
+let isRankedMode = true;
 let currentPlayerName = "Anonymous";
 
 let timerInterval = null;
-const TOTAL_COMP_TIME = 30 * 60; // 30 minutes in seconds
+const TOTAL_COMP_TIME = 40 * 60; // 40 minutes in seconds
 let secondsRemaining = TOTAL_COMP_TIME;
 
-// Individual tracking values per turn
 let hintsUsedThisTurn = 0;
-
-// Tracks whether the pre-game leaderboard dashboard is open on Screen 1
 let isSetupLeaderboardOpen = false;
 
-// Text Sanitation Function (Matches Python functionality)
+// Updated pure(): preserves $ for stylized titles, strips standard punctuation & spaces
 function pure(text) {
-    return text.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (!text) return '';
+    return text.toLowerCase().replace(/[^a-z0-9$]/g, '');
 }
 
-// =========================================================
-// Global Pool Update Logic
-// =========================================================
+// Central matching function (Single Source of Truth)
+function checkGuessMatch(playerGuess, actualTitle) {
+    const pGuess = pure(playerGuess);
+    if (!pGuess) return false;
+
+    // Generate valid target variations
+    const targets = [];
+
+    // 1. Spoken title ($ -> s)
+    const spokenTitle = actualTitle.replace(/\$/g, 's');
+    targets.push(pure(spokenTitle));
+
+    // 2. Literal official title (keeps $)
+    targets.push(pure(actualTitle));
+
+    // 3. Base title without parenthetical/bracketed content
+    if (actualTitle.includes('(') || actualTitle.includes('[')) {
+        const baseTitle = actualTitle.split(/[\(\[]/)[0];
+        targets.push(pure(baseTitle.replace(/\$/g, 's')));
+        targets.push(pure(baseTitle));
+    }
+
+    // Evaluate guess against all targets under & / and interchangeability
+    for (const target of targets) {
+        if (!target) continue;
+
+        // Direct match
+        if (pGuess === target) return true;
+
+        // & -> and
+        const targetWithAnd = pure(target.replace(/&/g, 'and'));
+        if (pGuess === targetWithAnd) return true;
+
+        // and -> &
+        const targetWithAmp = pure(target.replace(/\band\b/gi, '&'));
+        if (pGuess === targetWithAmp) return true;
+    }
+
+    return false;
+}
+
 function updateAvailablePool() {
     const numInput = document.getElementById("num-questions");
     const label = document.getElementById("question-label");
 
     if (!numInput || !label) return;
 
-    // Maps user selections and maps spaces to underscores to match your raw database array values
+    const safeDatabase = (typeof songDatabase !== 'undefined') ? songDatabase : [];
+
+    if (isRankedMode) {
+        filteredPool = [...safeDatabase];
+        numInput.disabled = true;
+        numInput.max = filteredPool.length;
+        numInput.value = filteredPool.length;
+        const subtitle = document.getElementById("ranked-subtitle-text");
+        if (subtitle) {
+            subtitle.innerHTML = `40 min limit &#8226; All ${filteredPool.length} songs &#8226; Global leaderboard`;
+        }
+        return;
+    }
+
     const activeDisplayNames = Array.from(document.querySelectorAll('.album-picker:checked')).map(cb => cb.value);
     const activeDatabaseTokens = activeDisplayNames.map(name => name.toLowerCase().replace(/ /g, "_"));
-
-    // Ensure database exists before running filter operation
-    const safeDatabase = (typeof songDatabase !== 'undefined') ? songDatabase : [];
 
     filteredPool = safeDatabase.filter(song => {
         const songAlbumToken = (song.album || "unknown_album").toLowerCase().trim();
@@ -61,7 +123,7 @@ function updateAvailablePool() {
     });
 
     if (filteredPool.length === 0) {
-        label.innerText = "Please select at least one album to enter the vault!";
+        label.innerText = "Please select at least one album!";
         numInput.max = 0;
         numInput.value = 0;
         numInput.disabled = true;
@@ -71,57 +133,86 @@ function updateAvailablePool() {
         if (parseInt(numInput.value) > filteredPool.length || numInput.value == 0) {
             numInput.value = Math.min(10, filteredPool.length);
         }
-        label.innerText = `How many questions would you like? (Max available: ${filteredPool.length})`;
+        label.innerText = `Number of questions (Max: ${filteredPool.length}):`;
     }
 }
 
-// =========================================================
-// MASTER CONFIGURATION ENGINE
-// =========================================================
+function toggleRankedMode() {
+    const rankedCheckbox = document.getElementById("comp-checkbox");
+    const customFields = document.getElementById("custom-fields");
+
+    isRankedMode = rankedCheckbox.checked;
+
+    if (isRankedMode) {
+        customFields.classList.add("hidden");
+    } else {
+        customFields.classList.remove("hidden");
+    }
+
+    updateAvailablePool();
+}
+
 function initGameSetup() {
     const numInput = document.getElementById("num-questions");
     const checkboxContainer = document.getElementById("album-checkboxes");
 
     if (!checkboxContainer) return;
 
-    // Renders boxes mapping directly to your specified sequence ordering rules
-    checkboxContainer.innerHTML = CHRONOLOGICAL_ALBUMS.map(album => `
-        <label>
-            <input type="checkbox" class="album-picker" value="${album}" checked>
-            ${album}
-        </label>
-    `).join('');
+    const safeDatabase = (typeof songDatabase !== 'undefined') ? songDatabase : [];
 
-    // Bind event change listeners safely
+    // 1. Extract all unique album tokens from songDatabase
+    const dbAlbums = Array.from(new Set(safeDatabase.map(s => s.album).filter(Boolean)));
+
+    // 2. Map database tokens back to canonical names
+    const availableAlbums = dbAlbums.map(albumToken => {
+        const canonical = CHRONOLOGICAL_ALBUMS.find(
+            a => a.toLowerCase().replace(/ /g, "_") === albumToken.toLowerCase().trim()
+        );
+        if (canonical) return canonical;
+
+        // Fallback formatting for unexpected album names
+        return albumToken
+            .replace(/_/g, ' ')
+            .replace(/\b\w/g, char => char.toUpperCase());
+    });
+
+    // Sort available albums chronologically according to CHRONOLOGICAL_ALBUMS
+    availableAlbums.sort((a, b) => {
+        let indexA = CHRONOLOGICAL_ALBUMS.indexOf(a);
+        let indexB = CHRONOLOGICAL_ALBUMS.indexOf(b);
+        if (indexA === -1) indexA = 999;
+        if (indexB === -1) indexB = 999;
+        return indexA - indexB;
+    });
+
+    // 3. Render checkboxes with album emoji entity on the left
+    checkboxContainer.innerHTML = availableAlbums.map(album => {
+        const emoji = ALBUM_EMOJIS[album] || "&#x1F3B5;";
+
+        return `
+            <label>
+                <input type="checkbox" class="album-picker" value="${album}" checked>
+                ${emoji} ${album}
+            </label>
+        `;
+    }).join('');
+
     document.querySelectorAll('.album-picker').forEach(checkbox => {
         checkbox.addEventListener('change', updateAvailablePool);
     });
 
-    // Run pool calculation pass globally
-    updateAvailablePool();
+    const compCheckbox = document.getElementById("comp-checkbox");
+    if (compCheckbox) {
+        compCheckbox.addEventListener('change', toggleRankedMode);
+    }
 
-    // NEW PASSTHROUGH: Fetch ranking ledger on initial load so it is instantly buffered
+    toggleRankedMode(); // Ensure state starts correctly
     renderLeaderboardView();
 
-    if (numInput) numInput.focus();
+    const nameInput = document.getElementById("player-name");
+    if (nameInput) nameInput.focus();
 }
 
-function setMode(mode) {
-    currentGameMode = mode;
-    document.getElementById('tab-casual').classList.toggle('active', mode === 'casual');
-    document.getElementById('tab-comp').classList.toggle('active', mode === 'comp');
-
-    document.getElementById('casual-fields').classList.toggle('hidden', mode !== 'casual');
-    document.getElementById('comp-fields').classList.toggle('hidden', mode !== 'comp');
-
-    if (mode === 'casual') {
-        document.getElementById("num-questions").focus();
-    } else {
-        document.getElementById("player-name").focus();
-    }
-}
-
-// Balanced Shuffling Engine (Eliminates system clustering biases)
 function fisherYatesShuffle(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -139,25 +230,25 @@ function startGame() {
     let quizNum = 5;
     let selectedPoolSource = [];
 
-    if (currentGameMode === 'casual') {
+    const nameInput = document.getElementById("player-name").value.trim();
+
+    if (!isRankedMode) {
         quizNum = parseInt(document.getElementById("num-questions").value) || 5;
         if (filteredPool.length < quizNum || quizNum <= 0) {
-            alert("Please select a valid question tally within active pool limits!");
+            alert("Please select a valid question count within available limits!");
             return;
         }
         selectedPoolSource = [...filteredPool];
         document.getElementById("game-timer").style.display = "none";
     } else {
-        const nameInput = document.getElementById("player-name").value.trim();
         if (!nameInput) {
-            alert("Please enter your name/initials to register for competition rankings!");
+            alert("Please enter your name to register on the global leaderboard!");
             return;
         }
         currentPlayerName = nameInput;
         selectedPoolSource = (typeof songDatabase !== 'undefined') ? [...songDatabase] : [];
         quizNum = selectedPoolSource.length;
 
-        // Initializes background countdown loops
         secondsRemaining = TOTAL_COMP_TIME;
         document.getElementById("game-timer").style.display = "block";
         updateTimerDisplay();
@@ -165,13 +256,20 @@ function startGame() {
         timerInterval = setInterval(tickTimer, 1000);
     }
 
-    // Shuffles full stack and slices out target deck requirements
     const shuffledDeck = fisherYatesShuffle(selectedPoolSource);
     const chosenRoundSongs = shuffledDeck.slice(0, quizNum);
 
-    // Dynamic Tracking Structure handles mid-array lookahead steps safely
     gameQuestions = chosenRoundSongs.map(song => {
-        const startingIndex = Math.floor(Math.random() * song.snippets.length);
+        let startingIndex = Math.floor(Math.random() * song.snippets.length);
+        const pureTitle = pure(song.title);
+
+        // Smart Lookahead: Attempts up to 5 times to pick an initial snippet that does NOT contain the song title
+        let attempts = 0;
+        while (pure(song.snippets[startingIndex]).includes(pureTitle) && attempts < 5) {
+            startingIndex = Math.floor(Math.random() * song.snippets.length);
+            attempts++;
+        }
+
         return {
             title: song.title,
             allLyrics: song.snippets,
@@ -193,7 +291,7 @@ function tickTimer() {
 
     if (secondsRemaining <= 0) {
         clearInterval(timerInterval);
-        alert("Time's up! The lyric vault doors have locked down!");
+        alert("Time's up! The vault has locked!");
         showResults(true);
     }
 }
@@ -212,7 +310,6 @@ function loadQuestion() {
 
     const currentQuestion = gameQuestions[currentQuestionIndex];
 
-    // Reset individual turn limits
     hintsUsedThisTurn = 0;
     const hintBtn = document.getElementById("hint-btn");
     hintBtn.style.display = "block";
@@ -235,38 +332,15 @@ function submitAnswer() {
     const currentQuestion = gameQuestions[currentQuestionIndex];
     const banner = document.getElementById("last-result");
 
-    const playerGuess = pure(answerInput.value);
-    const standardGoldenTarget = pure(currentQuestion.title);
-
-    let isCorrect = (playerGuess === standardGoldenTarget);
-
-    // Advanced Evaluation Pipeline (Interchange handles connective phrases and text open boundaries)
-    if (!isCorrect) {
-        const variantAndTarget = pure(currentQuestion.title.replace(/&/g, 'and'));
-        const variantAmpTarget = pure(currentQuestion.title.replace(/\band\b/g, ''));
-        if (playerGuess === variantAndTarget || playerGuess === variantAmpTarget) {
-            isCorrect = true;
-        }
-    }
-
-    // Drops parenthetical sections to match localized shorthand title variations
-    if (!isCorrect && currentQuestion.title.includes('(')) {
-        const baseTitlePart = currentQuestion.title.split('(')[0];
-        if (playerGuess === pure(baseTitlePart)) {
-            isCorrect = true;
-        }
-    }
-
+    const isCorrect = checkGuessMatch(answerInput.value, currentQuestion.title);
     const firstShownLyric = currentQuestion.allLyrics[currentQuestion.viewedIndices[0]];
 
     if (isCorrect) {
         score++;
-        // \u2705 translates cleanly to the visual green check icon at runtime
         banner.innerHTML = `\u2705 Correct: "${currentQuestion.title}"`;
         banner.className = "last-result-banner show correct";
     } else {
         wrongSongs.push({ title: currentQuestion.title, lyric: firstShownLyric });
-        // \u274C translates cleanly to the visual red cross icon at runtime
         banner.innerHTML = `\u274C Last Answer: "${currentQuestion.title}"`;
         banner.className = "last-result-banner show incorrect";
     }
@@ -280,7 +354,6 @@ function submitAnswer() {
     }
 }
 
-// Intercepts input entry field events to prevent generic browser reload actions
 document.getElementById("answer-input").addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
         e.preventDefault();
@@ -288,34 +361,29 @@ document.getElementById("answer-input").addEventListener("keydown", (e) => {
     }
 });
 
-// Multi-Line Fragment Traversal Core Architecture
 function getMoreLyric() {
     const currentQuestion = gameQuestions[currentQuestionIndex];
     const totalLinesAvailable = currentQuestion.allLyrics.length;
     const hintBtn = document.getElementById("hint-btn");
 
     if (totalLinesAvailable <= 1) {
-        hintBtn.innerText = "No more lines inside track";
+        hintBtn.innerText = "No more lines available";
         hintBtn.disabled = true;
         return;
     }
 
-    // Step 1: Attempt dynamic chronological forward search
     let targetSnippetIndex = currentQuestion.currentLyricIndex + 1;
 
-    // Step 2: Corner Case Check - If lookahead spills over array length, reverse into trace indexes
     if (targetSnippetIndex >= totalLinesAvailable) {
         targetSnippetIndex = Math.min(...currentQuestion.viewedIndices) - 1;
     }
 
-    // Step 3: Absolute loop safety block protects bounds
     if (targetSnippetIndex < 0 || targetSnippetIndex >= totalLinesAvailable || currentQuestion.viewedIndices.includes(targetSnippetIndex)) {
         hintBtn.innerText = "Out of lyrics!";
         hintBtn.disabled = true;
         return;
     }
 
-    // Commit tracked index changes to global state variables
     currentQuestion.currentLyricIndex = targetSnippetIndex;
     currentQuestion.viewedIndices.push(targetSnippetIndex);
     hintsUsedThisTurn++;
@@ -324,10 +392,8 @@ function getMoreLyric() {
     const freshHintText = currentQuestion.allLyrics[targetSnippetIndex];
     const displayFrame = document.getElementById("lyric-display");
 
-    // Injects secondary lines inside custom styling tags at smaller dimensions (1rem)
-    displayFrame.innerHTML += `<span class="lyric-line" style="border-top: 1px dashed rgba(201,180,166,0.25); padding-top: 8px; font-size: 1rem; font-family: -apple-system, sans-serif; opacity: 0.75;">"${sanitizeSpoiler(freshHintText, currentQuestion.title)}"</span>`;
+    displayFrame.innerHTML += `<span class="lyric-line" style="border-top: 1px dashed rgba(201,180,166,0.25); padding-top: 8px; font-size: 0.95rem; opacity: 0.75;">"${sanitizeSpoiler(freshHintText, currentQuestion.title)}"</span>`;
 
-    // Limits interaction threshold to exactly 5 clicks maximum
     if (hintsUsedThisTurn >= 5) {
         hintBtn.style.display = "none";
     } else {
@@ -355,26 +421,28 @@ function showResults(forcedTimeout = false) {
     const feedbackCard = document.getElementById("tier-feedback-card");
     const timeDisplay = document.getElementById("time-spent-display");
 
-    // Dynamic Tier Presentation Engine (Using pure safe strings)
+    const rawName = document.getElementById("player-name").value.trim();
+    const displayName = rawName ? rawName : "Swiftie";
+
     if (accuracyPercent === 100) {
         feedbackCard.className = "tier-card flawless";
-        feedbackCard.innerHTML = "<strong>&#x1F389;FLAWLESS&#x1F389;</strong><br>This game is flawless, don't you let it go!";
+        feedbackCard.innerHTML = `<strong>&#x1F389; FLAWLESS, ${displayName}! &#x1F389;</strong><br>This game is flawless, don't you let it go!`;
     } else if (accuracyPercent >= 80) {
         feedbackCard.className = "tier-card congrats";
-        feedbackCard.innerHTML = "<strong>VERY GOOD</strong><br>Incredible job! You know you're good when you can even do it with just a few mistakes!";
+        feedbackCard.innerHTML = `<strong>INCREDIBLE, ${displayName}!</strong><br>Long story short, you survived! You're a true Mastermind.`;
     } else if (accuracyPercent >= 50) {
         feedbackCard.className = "tier-card congrats";
-        feedbackCard.innerHTML = "<strong>NOT BAD</strong><br>Good effort! A few more repeats of the albums and you'll be a Mastermind.";
+        feedbackCard.innerHTML = `<strong>NOT BAD, ${displayName}!</strong><br>You know you're good when you can even do it with a few mistakes.`;
     } else {
         feedbackCard.className = "tier-card oops";
-        feedbackCard.innerHTML = "<strong>Shake It Off!</strong><br>This wasn't a good score but the players' gonna play play play!";
+        feedbackCard.innerHTML = `<strong>Shake It Off, ${displayName}!</strong><br>This wasn't your best run, but the players gonna play, play, play!`;
     }
 
-    if (currentGameMode === 'comp') {
+    if (isRankedMode) {
         const timeElapsedSeconds = TOTAL_COMP_TIME - secondsRemaining;
         const minutesUsed = Math.floor(timeElapsedSeconds / 60);
         const secondsUsed = timeElapsedSeconds % 60;
-        timeDisplay.innerText = `Total Duration: ${minutesUsed}m ${secondsUsed}s | Total Hints Demanded: ${totalHintsUsedInGame}`;
+        timeDisplay.innerText = `Total Duration: ${minutesUsed}m ${secondsUsed}s | Hints Used: ${totalHintsUsedInGame}`;
         timeDisplay.style.display = "block";
 
         saveToStagedLeaderboard(currentPlayerName, score, totalQuestions, timeElapsedSeconds, totalHintsUsedInGame);
@@ -390,13 +458,8 @@ function showResults(forcedTimeout = false) {
         summaryDiv.style.display = "block";
         summaryDiv.innerHTML = "<strong>Review What You Missed:</strong><br><br>";
         wrongSongs.forEach(item => {
-            // 1. Standard search keywords
             const baseQuery = "Taylor Swift " + item.title;
-
-            // 2. Advanced operator that strictly forces YouTube to search within her official channel ID path
             const channelFilter = ' url:"/user/TaylorSwift"';
-
-            // 3. Combine and convert to a clean, browser-safe ASCII string format
             const searchQuery = encodeURIComponent(baseQuery + channelFilter);
             const listenUrl = "https://www.youtube.com/results?search_query=" + searchQuery;
 
@@ -414,16 +477,14 @@ function showResults(forcedTimeout = false) {
     }
 }
 
-// Mocked Sandbox Data Pipeline handles sorting structures inside local staging memory blocks
 function saveToStagedLeaderboard(name, score, total, seconds, hints) {
     let leaderboard = JSON.parse(localStorage.getItem('ts_vault_global_mock')) || [];
     leaderboard.push({ name, score, total, seconds, hints, date: new Date().toLocaleDateString() });
 
-    // Multi-tiered High Score Sorting Hierarchy Equation
     leaderboard.sort((a, b) => {
-        if (b.score !== a.score) return b.score - a.score; // 1st Priority: Accuracy (Desc)
-        if (a.seconds !== b.seconds) return a.seconds - b.seconds; // 2nd Priority: Duration (Asc)
-        return a.hints - b.hints; // 3rd Priority: Hints (Asc)
+        if (b.score !== a.score) return b.score - a.score;
+        if (a.seconds !== b.seconds) return a.seconds - b.seconds;
+        return a.hints - b.hints;
     });
 
     localStorage.setItem('ts_vault_global_mock', JSON.stringify(leaderboard.slice(0, 10)));
@@ -432,11 +493,9 @@ function saveToStagedLeaderboard(name, score, total, seconds, hints) {
 function renderLeaderboardView() {
     const scores = JSON.parse(localStorage.getItem('ts_vault_global_mock')) || [];
 
-    // Target both rendering slots simultaneously
     const postGameBody = document.getElementById("leaderboard-rows");
     const preGameBody = document.getElementById("setup-leaderboard-rows");
 
-    // Generate clean template literal rows matching your ledger properties
     const tableHTMLContent = scores.length === 0
         ? `<tr><td colspan="5" style="text-align:center; color:#999;">Leaderboard is empty. Be the first to claim a rank!</td></tr>`
         : scores.map((entry, idx) => `
@@ -449,7 +508,6 @@ function renderLeaderboardView() {
             </tr>
           `).join('');
 
-    // Safely inject the rows into whichever slots are active on the DOM layout
     if (postGameBody) postGameBody.innerHTML = tableHTMLContent;
     if (preGameBody) preGameBody.innerHTML = tableHTMLContent;
 }
@@ -457,7 +515,7 @@ function renderLeaderboardView() {
 function restartGame() {
     clearInterval(timerInterval);
     showScreen("setup-screen");
-    document.getElementById("num-questions").focus();
+    document.getElementById("player-name").focus();
 }
 
 function showScreen(id) {
@@ -465,11 +523,8 @@ function showScreen(id) {
     document.getElementById(id).classList.add('active');
 }
 
-// =========================================================
-// OPTION A VIEW CONTROLLER: Toggles Pre-Game Leaderboard
-// =========================================================
 function toggleSetupLeaderboard(event) {
-    if (event) event.preventDefault(); // Prevents the browser from reloading the page path
+    if (event) event.preventDefault();
 
     const fieldsContainer = document.getElementById("setup-fields-container");
     const leaderboardView = document.getElementById("setup-leaderboard-view");
@@ -477,19 +532,14 @@ function toggleSetupLeaderboard(event) {
 
     if (!fieldsContainer || !leaderboardView || !linkBtn) return;
 
-    // Flip the state flag back and forth
     isSetupLeaderboardOpen = !isSetupLeaderboardOpen;
 
     if (isSetupLeaderboardOpen) {
-        // Hide config settings and reveal high scores
         fieldsContainer.classList.add("hidden");
         leaderboardView.classList.remove("hidden");
-        linkBtn.innerText = "Back to Game Setup";
-
-        // Refresh rows to guarantee player is seeing live cloud data snapshots
+        linkBtn.innerText = "Back to Setup";
         renderLeaderboardView();
     } else {
-        // Show config settings and hide high scores
         fieldsContainer.classList.remove("hidden");
         leaderboardView.classList.add("hidden");
         linkBtn.innerText = "View Global Rankings";
