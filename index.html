@@ -1,58 +1,58 @@
-<!--
-=========================================================
-                     THE LYRIC VAULT
-  Designed & Engineered by: Kisa
-  Built Using: Vanilla HTML5, Responsive CSS3, JavaScript
-  Current Build Version: 1.2.0 (June 2026)
-=========================================================
--->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Lyric Vault: A Taylor Swift Guessing Game</title>
+    <title>Taylor Swift Lyrics Test</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="container">
-    <h1>The Lyric Vault</h1>
-    <div class="subtitle">A Taylor Swift Guessing Game</div>
+    <h1>Taylor Swift Lyrics Test</h1>
+    <div class="subtitle">How well do you know her songs?</div>
 
-    <!-- SCREEN 1: CONFIGURATION & RULES DASHBOARD -->
+    <!-- SCREEN 1: MINIMAL SETUP DASHBOARD -->
     <div id="setup-screen" class="screen active">
         <div id="setup-fields-container">
-            <div class="mode-toggle">
-                <div id="tab-casual" class="mode-tab active" onclick="setMode('casual')">Casual Mode</div>
-                <div id="tab-comp" class="mode-tab" onclick="setMode('comp')">Competition Mode</div>
+
+            <!-- MAIN ENTRY CARD -->
+            <div class="entry-card">
+                <div class="form-group">
+                    <input type="text" id="player-name" placeholder="Enter your name" maxlength="15" autocomplete="off">
+                </div>
+
+                <!-- RANKED MODE TOGGLE ROW -->
+                <div class="ranked-row">
+                    <div class="ranked-info">
+                        <span class="ranked-title">Ranked Mode</span>
+                        <span class="ranked-subtitle" id="ranked-subtitle-text">40 min limit &#8226; All songs &#8226; Global leaderboard</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="comp-checkbox" checked>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+
+                <button class="primary-btn" onclick="startGame()">Start Game</button>
             </div>
 
-            <div id="casual-fields">
+            <!-- CUSTOM SETTINGS PANEL (REVEALED WHEN RANKED IS UNCHECKED) -->
+            <div id="custom-fields" class="custom-panel hidden">
+                <div class="custom-header">Custom Options</div>
                 <div class="form-group">
-                    <label>Select Albums to Include:</label>
+                    <label>Select Albums:</label>
                     <div id="album-checkboxes" class="album-grid"></div>
                 </div>
                 <div class="form-group">
-                    <label id="question-label" for="num-questions">How many questions would you like?</label>
+                    <label id="question-label" for="num-questions">Number of questions:</label>
                     <input type="number" id="num-questions" min="1" value="5">
                 </div>
             </div>
 
-            <div id="comp-fields" class="hidden">
-                <div class="form-group">
-                    <label for="player-name">Enter Player Name / Initials:</label>
-                    <input type="text" id="player-name" placeholder="e.g. T.S." maxlength="15" autocomplete="off">
-                </div>
-                <div class="comp-info-box">
-                    &#128368; You have 30 minutes. All songs will be tested.
-                </div>
-            </div>
-
-            <button onclick="startGame()">Enter the Vault</button>
         </div>
 
+        <!-- GLOBAL RANKINGS LINK -->
         <div id="setup-leaderboard-view" class="hidden">
             <div class="leaderboard-title">&#127942; Global Ranking</div>
             <table class="leaderboard-table">
@@ -81,11 +81,6 @@
                 <li>&#8226; "and" and "&" are interchangeable</li>
                 <li>&#8226; Parentheses ( ) and brackets [ ] are ignored</li>
             </ul>
-            <div class="examples-header">Examples:</div>
-            <div class="example correct">&#9989;<code>me</code> will match "ME!"</div>
-            <div class="example correct">&#9989;<code>I can see you</code> will match "I Can See You (Taylor's Version)"</div>
-            <div class="example correct">&#9989;<code>I can fix him</code> will match "I Can Fix Him (No Really I Can)"</div>
-            <div class="example incorrect">&#10060;<code>missamericanatheheartbreakprince</code> will NOT match "Miss Americana and The Heartbreak Prince" <span class="error-note">(Don't skip "and"!)</span></div>
         </div>
     </div>
 
@@ -95,7 +90,7 @@
 
         <div class="game-header">
             <div class="metadata-tag" id="question-tracker">Question 1 of X</div>
-            <div class="timer-tag" id="game-timer">30:00</div>
+            <div class="timer-tag" id="game-timer">40:00</div>
         </div>
 
         <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
@@ -107,7 +102,7 @@
         <div class="form-group">
             <input type="text" id="answer-input" placeholder="What song is this?" autocomplete="off">
         </div>
-        <button id="action-btn" onclick="submitAnswer()">Submit Guess</button>
+        <button id="action-btn" class="primary-btn" onclick="submitAnswer()">Submit Guess</button>
     </div>
 
     <!-- SCREEN 3: END SCORING ARCHIVE -->
@@ -135,18 +130,18 @@
         </div>
 
         <div id="incorrect-summary" class="incorrect-list"></div>
-        <button id="restart-btn" onclick="restartGame()">Play Again</button>
+        <button id="restart-btn" class="primary-btn" onclick="restartGame()">Play Again</button>
     </div>
 
-    <!-- FIXED PLACEMENT: The Signature lives cleanly inside the container root base -->
     <div class="vault-footer">
         Crafted with &#129782; by <a href="https://github.com/kisashen" target="_blank">Kisa</a>
     </div>
-</div> <!-- END OF CONTAINER ROOT -->
+</div>
 
-<!-- Dependency Mounting Chain -->
 <script src="song_database.js"></script>
 <script src="game.js"></script>
+<!-- Dev Tools script linked last -->
+<script src="testGuess.js"></script>
 <script>
     if (typeof initGameSetup === 'function') {
         initGameSetup();
