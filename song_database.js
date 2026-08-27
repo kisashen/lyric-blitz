@@ -5475,7 +5475,7 @@ const songDatabase = [
       "Uh huh, that's right",
       "Darling, you're the one I want",
       "In paper rings",
-      "In picture frames, in all dreams, you're the one I want",
+      "In picture frames, in all my dreams, you're the one I want",
       "In paper rings, in picture frames, and all my dreams",
       "Oh, you're the one I want",
       "You're the one I want, one I want",
